@@ -1,4 +1,4 @@
-package com.example.camp_harmony_app
+package org.unitedinharmony.campharmony
 
 import io.flutter.embedding.android.FlutterActivity
 

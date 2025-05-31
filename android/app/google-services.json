@@ -12,7 +12,20 @@
           "package_name": "org.unitedinharmony.campharmony"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "259507610442-9pe2um6p7rn56sihf4n8mdl6jar3e9ei.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.unitedinharmony.campharmony",
+            "certificate_hash": "74ec561e4be24782fb09dbba37b98e85154fe904"
+          }
+        },
+        {
+          "client_id": "259507610442-3o9f7tm74qjt26a4gkigbcn9pvpg9pdh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA6f75zOT1MS5Lpcb1B3lNltEPucpZNKtY"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "259507610442-3o9f7tm74qjt26a4gkigbcn9pvpg9pdh.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "259507610442-e9eq4ogqdvgl19s24hnibsf5i30tlug6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "org.unitedinharmony.campharmony"
+              }
+            }
+          ]
         }
       }
     }

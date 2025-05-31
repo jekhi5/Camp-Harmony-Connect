@@ -63,6 +63,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '259507610442',
     projectId: 'camp-harmony',
     storageBucket: 'camp-harmony.firebasestorage.app',
+    androidClientId: '259507610442-9pe2um6p7rn56sihf4n8mdl6jar3e9ei.apps.googleusercontent.com',
+    iosClientId: '259507610442-e9eq4ogqdvgl19s24hnibsf5i30tlug6.apps.googleusercontent.com',
     iosBundleId: 'org.unitedinharmony.campharmony',
   );
+
 }

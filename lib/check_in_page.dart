@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 class CheckInPage extends StatefulWidget {
-  const CheckInPage({super.key, messageStreamController});
+  const CheckInPage({super.key});
 
   @override
   State<CheckInPage> createState() => _CheckInPageState();

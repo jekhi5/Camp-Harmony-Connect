@@ -1,3 +1,4 @@
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -58,32 +59,18 @@ class _CheckInPageState extends State<CheckInPage> {
                 key: _formKey,
                 child: Column(
                   children: <Widget>[
-                    PlatformTextFormField(
-                      material: (_, __) =>
-                          getMatFormField("First Name", Icons.person),
-                      cupertino: (_, __) => getCupertinoFormField(
-                          "First Name", CupertinoIcons.person),
-                      validator: (String? value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your first name';
-                        }
-                        return null;
-                      },
+                    const Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Text(
+                          'Welcome to Camp Harmony! Please check in below:',
+                          style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
                     ),
-                    const SizedBox(height: 16),
-                    PlatformTextFormField(
-                      material: (_, __) =>
-                          getMatFormField("Last Name", Icons.person),
-                      cupertino: (_, __) => getCupertinoFormField(
-                          "Last Name", CupertinoIcons.person),
-                      validator: (String? value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your last name';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
                     PlatformElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
@@ -103,6 +90,9 @@ class _CheckInPageState extends State<CheckInPage> {
                         color: _checkedIn ? Colors.green : Colors.red,
                       ),
                     ),
+                    const Padding(
+                        padding: EdgeInsets.all(20),
+                        child: SignOutButton()),
                   ],
                 ),
               ),

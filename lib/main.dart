@@ -48,7 +48,9 @@ Future<void> main() async {
   try {
     token = await messaging.getToken();
   } catch (e) {
-    token = "UNKNOWN TOKEN";
+    if (kDebugMode) {
+      print('Error retrieving token: $e');
+    }
   }
 
   if (kDebugMode) {
@@ -72,7 +74,7 @@ Future<void> main() async {
   try {
     await messaging.subscribeToTopic(topic);
   } catch (e) {
-    print('Unable to subscribe to topic: $topic');
+    print('Unable to subscribe to topic: $topic. Exception: $e');
   }
 
   runApp(const PlatformApp(home: CampHarmonyApp()));

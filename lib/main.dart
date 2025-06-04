@@ -43,7 +43,13 @@ Future<void> main() async {
     print('Permission granted: ${settings.authorizationStatus}');
   }
 
-  String? token = await messaging.getToken();
+  String? token;
+
+  try {
+    token = await messaging.getToken();
+  } catch (e) {
+    token = "UNKNOWN TOKEN";
+  }
 
   if (kDebugMode) {
     print('Registration Token=$token');
@@ -63,8 +69,11 @@ Future<void> main() async {
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   const topic = 'app_promotion';
-  await messaging.subscribeToTopic(topic);
-
+  try {
+    await messaging.subscribeToTopic(topic);
+  } catch (e) {
+    print('Unable to subscribe to topic: $topic');
+  }
 
   runApp(const PlatformApp(home: CampHarmonyApp()));
 }

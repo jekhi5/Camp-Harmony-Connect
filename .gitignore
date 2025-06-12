@@ -36,6 +36,7 @@ server/
 /build/
 /android/app/google-services.json
 /ios/Runner/GoogleService-Info.plist
+/lib/firebase_options.dart
 
 # Symbolication related
 app.*.symbols

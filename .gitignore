@@ -35,6 +35,7 @@ server/
 .pub/
 /build/
 /android/app/google-services.json
+/ios/Runner/GoogleService-Info.plist
 
 # Symbolication related
 app.*.symbols

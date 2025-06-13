@@ -1,4 +1,4 @@
-import 'package:camp_harmony_app/camp_harmony_app.dart';
+import 'package:camp_harmony_app/components/camp_harmony_app.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter/foundation.dart';
@@ -24,6 +24,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
+    name: "Camp_Harmony_App",
     options: DefaultFirebaseOptions.currentPlatform,
   );
 

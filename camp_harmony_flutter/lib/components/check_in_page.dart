@@ -1,23 +1,51 @@
+import 'package:camp_harmony_client/camp_harmony_client.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../serverpod_providers.dart';
 
-class CheckInPage extends StatefulWidget {
+class CheckInPage extends ConsumerStatefulWidget {
   const CheckInPage({super.key});
 
   @override
-  State<CheckInPage> createState() => _CheckInPageState();
+  ConsumerState<CheckInPage> createState() => _CheckInPageState();
 }
 
-class _CheckInPageState extends State<CheckInPage> {
+class _CheckInPageState extends ConsumerState<CheckInPage> {
+  CheckInStatus? checkInStatus;
   bool _checkedIn = false;
+  String errorMessage = '';
+  String statusMessage = '';
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  void _invertCheckInStatus() {
-    setState(() {
-      _checkedIn = !_checkedIn;
-    });
+  void _invertCheckInStatus(Client client) async {
+    try {
+      final CheckInStatus? checkInStatus =
+          await client.checkIn.checkIn(0); // Replace 0 with actual user ID
+
+      if (checkInStatus != null) {
+        setState(() {
+          _checkedIn = checkInStatus.checkedIn;
+          this.checkInStatus = checkInStatus;
+          errorMessage = '';
+          statusMessage = checkInStatus.statusMessage ??
+              'Did not receive a status message.';
+        });
+      } else {
+        setState(() {
+          errorMessage = 'Check-in failed. Please try again.';
+        });
+      }
+    } catch (e) {
+      // Handle error
+      print('Error checking in: $e');
+      setState(() {
+        errorMessage = 'Check-in failed. Please try again.';
+      });
+    }
   }
 
   MaterialTextFormFieldData getMatFormField(String labelText, IconData icon) {
@@ -45,6 +73,8 @@ class _CheckInPageState extends State<CheckInPage> {
 
   @override
   Widget build(BuildContext context) {
+    final Client client = ref.watch(clientProvider);
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -64,18 +94,17 @@ class _CheckInPageState extends State<CheckInPage> {
                         child: Text(
                           'Welcome to Camp Harmony! Please check in below:',
                           style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
                           ),
                           textAlign: TextAlign.center,
-                        )
-                    ),
+                        )),
                     PlatformElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
                           _formKey.currentState!.reset();
-                          _invertCheckInStatus();
+                          _invertCheckInStatus(client);
                         }
                       },
                       child:
@@ -91,8 +120,15 @@ class _CheckInPageState extends State<CheckInPage> {
                       ),
                     ),
                     const Padding(
-                        padding: EdgeInsets.all(20),
-                        child: SignOutButton()),
+                        padding: EdgeInsets.all(20), child: SignOutButton()),
+                    PlatformText(
+                      statusMessage,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange,
+                      ),
+                    ),
                   ],
                 ),
               ),

@@ -134,6 +134,7 @@ unlinked_spec.ds
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 **/android/key.properties
+**/android/build/
 *.jks
 
 # iOS/XCode related
@@ -165,6 +166,7 @@ unlinked_spec.ds
 **/ios/Flutter/flutter_export_environment.sh
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
+**/ios/build/
 
 # macOS
 **/Flutter/ephemeral/

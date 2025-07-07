@@ -3,9 +3,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:camp_harmony_client/camp_harmony_client.dart';
+import 'package:serverpod_flutter/serverpod_flutter.dart';
 
 // used to pass messages from event handler to the UI
 final _messageStreamController = BehaviorSubject<RemoteMessage>();
@@ -71,12 +74,5 @@ Future<void> main() async {
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  const topic = 'app_promotion';
-  try {
-    await messaging.subscribeToTopic(topic);
-  } catch (e) {
-    print('Unable to subscribe to topic: $topic. Exception: $e');
-  }
-
-  runApp(const PlatformApp(home: CampHarmonyApp()));
+  runApp(const ProviderScope(child: PlatformApp(home: CampHarmonyApp())));
 }

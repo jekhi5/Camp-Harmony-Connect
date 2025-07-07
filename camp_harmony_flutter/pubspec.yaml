@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  camp_harmony_client:
+    path: ../camp_harmony_client
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -43,6 +45,8 @@ dependencies:
   firebase_ui_auth: ^1.10.0
   google_sign_in: ^6.1.6
   firebase_ui_oauth_google: ^1.2.14
+  serverpod_flutter: ^2.9.1
+  flutter_riverpod: ^2.6.1
 
 dev_dependencies:
   flutter_test:

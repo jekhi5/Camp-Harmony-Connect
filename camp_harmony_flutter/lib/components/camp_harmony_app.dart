@@ -1,4 +1,5 @@
 import 'package:camp_harmony_app/components/camp_map.dart';
+import 'package:camp_harmony_client/camp_harmony_client.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/cupertino.dart';

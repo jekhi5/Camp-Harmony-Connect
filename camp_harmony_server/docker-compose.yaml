@@ -1,0 +1,44 @@
+services:
+  # Development services
+  postgres:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "8090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: camp_harmony
+      POSTGRES_PASSWORD: "tJdnGOZ5MHQ9gFUo3XXleQ2NIT9wdsPU"
+    volumes:
+      - camp_harmony_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:6.2.6
+    ports:
+      - "8091:6379"
+    command: redis-server --requirepass "NoB-R8BbxpejDZPfh3eLdvLUFLuBAlIy"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+
+  # Test services
+  postgres_test:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "9090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: camp_harmony_test
+      POSTGRES_PASSWORD: "HB0GXFaGY0C_HNTp7RquxTN_o2rTeFrx"
+    volumes:
+      - camp_harmony_test_data:/var/lib/postgresql/data
+
+  redis_test:
+    image: redis:6.2.6
+    ports:
+      - "9091:6379"
+    command: redis-server --requirepass "_GGd_ILG5QpZyzvivZTk8UE5gnXpHsN3"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+
+volumes:
+  camp_harmony_data:
+  camp_harmony_test_data:

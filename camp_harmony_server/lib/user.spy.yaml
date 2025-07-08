@@ -1,0 +1,16 @@
+### This file defines the User model for the Camp Harmony application.
+### It includes fields for user information, roles, and timestamps.
+class: User
+table: users
+fields:
+  userId: int
+  name: String
+  email: String
+  phoneNumber: String
+  registrationDate: DateTime
+  isActive: bool
+  roles: List<String>
+  profilePictureUrl: String?
+  lastLogin: DateTime?
+  createdAt: DateTime
+  updatedAt: DateTime

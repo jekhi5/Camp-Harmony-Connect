@@ -1,10 +1,10 @@
+import 'package:camp_harmony_app/components/auth_gate.dart';
 import 'package:camp_harmony_client/camp_harmony_client.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mongo_dart/mongo_dart.dart';
 import '../serverpod_providers.dart';
 
 class CheckInPage extends ConsumerStatefulWidget {
@@ -21,10 +21,11 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   String _statusMessage = '';
   bool _editingPhoneNumber = false;
   String? _userPhoneNumber;
+  final TextEditingController _phoneNumberController = TextEditingController();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  void _invertCheckInStatus(Client client) async {
+  void _checkInOut(Client client) async {
     try {
       if (_userPhoneNumber == null) {
         setState(() {
@@ -64,31 +65,40 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     });
   }
 
-  MaterialTextFormFieldData getMatFormField(String labelText, IconData icon) {
-    return MaterialTextFormFieldData(
-      decoration: InputDecoration(
-        border: const OutlineInputBorder(),
-        labelText: labelText,
-        prefixIcon: Icon(icon),
-      ),
-    );
+  void _phoneNumberOnPress() {
+    if (_editingPhoneNumber) {
+      // Save the phone number
+      _userPhoneNumber = _phoneNumberController.text.trim();
+      if (_userPhoneNumber!.isEmpty) {
+        setState(() {
+          _errorMessage = "Please enter a valid phone number.";
+        });
+        return;
+      }
+      // TODO: Actually save phone number in DB
+      setState(() {
+        _statusMessage = "Phone number updated successfully.";
+        _errorMessage = '';
+      });
+    } else {
+      // Start editing phone number
+      _phoneNumberController.text = _userPhoneNumber ?? '';
+    }
+    _toggleEditingPhoneNumber();
   }
 
-  CupertinoTextFormFieldData getCupertinoFormField(
-      String placeholder, IconData icon) {
-    return CupertinoTextFormFieldData(
-      placeholder: placeholder,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-      decoration: BoxDecoration(
-        color: CupertinoColors.systemGrey6,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      prefix: Icon(icon, size: 18),
-    );
+  // Clear the phone number controller when the widget is disposed
+  @override
+  void dispose() {
+    _phoneNumberController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (FirebaseAuth.instance.currentUser == null) {
+      return AuthGate(destinationWidget: CheckInPage());
+    }
     final Client client = ref.watch(clientProvider);
 
     return SafeArea(
@@ -125,18 +135,19 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                                   const TextInputType.numberWithOptions(),
                               readOnly: !_editingPhoneNumber,
                               hintText: "Phone Number",
-                              onEditingComplete: () {
-                                // TODO: Update this to actually use the value from the field
-                              },
+                              controller: _phoneNumberController,
                             )
                           : PlatformText(
-                              _userPhoneNumber ?? "No Phone Number Found"),
+                              _userPhoneNumber == null
+                                  ? "No Phone Number Found"
+                                  : "Phone Number: $_userPhoneNumber",
+                            ),
                     ),
                     Padding(
                         padding: const EdgeInsets.all(10),
                         child: PlatformElevatedButton(
                             onPressed: () {
-                              _toggleEditingPhoneNumber();
+                              _phoneNumberOnPress();
                             },
                             child: PlatformText(_editingPhoneNumber
                                 ? "Save"
@@ -145,7 +156,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
                           _formKey.currentState!.reset();
-                          _invertCheckInStatus(client);
+                          _checkInOut(client);
                         }
                       },
                       child: PlatformText(

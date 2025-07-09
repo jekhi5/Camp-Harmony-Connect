@@ -17,3 +17,5 @@ config/firebase_service_account_key.json
 
 *.log
 *.tmp
+
+/test/integration/test_tools/serverpod_test_tools.dart

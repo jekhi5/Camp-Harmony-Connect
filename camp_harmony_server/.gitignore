@@ -17,3 +17,5 @@ config/firebase_service_account_key.json
 
 *.log
 *.tmp
+
+.env

@@ -66,31 +66,37 @@ class AuthGate extends ConsumerWidget {
           );
         } else {
           // Logged in, check for ServerPod data
-          final userProfileAsyncValue = ref.watch(userProfileProvider);
+          final userProfileAsyncValue =
+              ref.watch(userProfileProvider(firebaseUser.uid));
 
           return userProfileAsyncValue.when(
             data: (user) {
               if (user == null) {
-                // No data in ServerPod, go to obboarding
-
-                final onboardingCompleted =
-                    ref.watch(onboardingCompletedProvider);
-                if (onboardingCompleted) {
-                  // Onboarding was just completed, so go to expected destination
-                  return destinationWidget;
-                } else {
-                  // Not completed, show onboarding
-                  return OnboardingScreen();
-                }
+                // User has not completed onboarding, show onboarding screen
+                return OnboardingScreen();
               }
-              // User has data in Serverpod, so just go to destination
+
               return destinationWidget;
             },
             loading: () => const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             ),
             error: (err, stack) => Scaffold(
-              body: Center(child: Text('Error loading user data: $err')),
+              body: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Center(child: Text('Error loading user data: $err')),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Retry loading user data
+                      ref.invalidate(userProfileProvider(firebaseUser.uid));
+                      ref.invalidate(firebaseAuthChangesProvider);
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
             ),
           );
         }
@@ -99,7 +105,20 @@ class AuthGate extends ConsumerWidget {
         body: Center(child: CircularProgressIndicator()),
       ),
       error: (err, stack) => Scaffold(
-        body: Center(child: Text('Firebase Auth error: $err')),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Center(child: Text('Firebase Auth error: $err')),
+            ElevatedButton(
+              onPressed: () {
+                // Retry loading user data
+                ref.invalidate(userProfileProvider);
+              },
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
       ),
     );
   }

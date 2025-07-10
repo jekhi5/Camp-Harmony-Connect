@@ -73,7 +73,7 @@ class OnboardingScreen extends ConsumerWidget {
                   email: firebaseUser.email ?? '',
                   phoneNumber: phoneNumberController.text,
                   registrationDate: DateTime.now(),
-                  isActive: true,
+                  isCheckedIn: false,
                   roles: ['user'],
                 );
 

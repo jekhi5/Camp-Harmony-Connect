@@ -5,23 +5,36 @@ import 'package:serverpod/serverpod.dart';
 // Manage checking in and out of being on camp grounds.
 class CheckInEndpoint extends Endpoint {
   /// Check in a user to the camp.
-  Future<CheckInStatus> checkIn(Session session, int userId) async {
+  Future<bool> checkIn(Session session, String uid) async {
     // Implement check-in logic here
-    CheckInStatus status = CheckInStatus(
-      userId: userId,
-      checkedIn: true,
-      checkInTime: DateTime.now(),
-      checkOutTime: null,
-      checkInLocation: null,
-      checkOutLocation: null,
-      statusMessage: 'Updated successfully at ${DateTime.now()}',
-    );
-
-    return status;
+    ServerpodUser? user = await ServerpodUser.db
+        .findFirstRow(session, where: (u) => u.firebaseUID.equals(uid));
+    if (user == null) {
+      print("User not found for check-in: $uid");
+      return false;
+    }
+    user.isCheckedIn = true;
+    try {
+      await ServerpodUser.db.updateRow(session, user);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   /// Check out a user from the camp.
-  Future<void> checkOut(Session session, String userId) async {
-    // Implement check-out logic here
+  Future<bool> checkOut(Session session, String uid) async {
+    ServerpodUser? user = await ServerpodUser.db
+        .findFirstRow(session, where: (u) => u.firebaseUID.equals(uid));
+    if (user == null) {
+      return false;
+    }
+    user.isCheckedIn = false;
+    try {
+      await ServerpodUser.db.updateRow(session, user);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }

@@ -1,7 +1,8 @@
-import 'package:camp_harmony_app/components/auth_gate.dart';
+import 'dart:io';
+
 import 'package:camp_harmony_client/camp_harmony_client.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -94,12 +95,15 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (FirebaseAuth.instance.currentUser == null) {
-      return AuthGate(destinationWidget: CheckInPage());
-    }
-    final Client client = ref.watch(clientProvider);
+  Widget _buildCheckInForm(Client client, String firebaseUID) {
+    _userPhoneNumber = ref.watch(userProfileProvider(firebaseUID)).when(
+          data: (user) => user?.phoneNumber,
+          loading: () => null,
+          error: (error, stack) {
+            print('Error fetching user profile: $error');
+            return null;
+          },
+        );
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -187,13 +191,80 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                         color: _checkedIn == true ? Colors.green : Colors.red,
                       ),
                     ),
-                    const Padding(
-                        padding: EdgeInsets.all(10), child: SignOutButton()),
+                    Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: ElevatedButton.icon(
+                            icon: Icon(
+                                Platform.isAndroid
+                                    ? Icons.logout
+                                    : CupertinoIcons.arrow_right_circle,
+                                size: 20),
+                            label: const Text('Sign Out'),
+                            onPressed: () async {
+                              await FirebaseAuth.instance
+                                  .signOut()
+                                  .whenComplete(() {
+                                ref.invalidate(
+                                    userProfileProvider(firebaseUID));
+                                ref.invalidate(firebaseAuthChangesProvider);
+                              });
+                            })),
                   ],
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _showSignInError() {
+    return Column(
+      children: [
+        Text('Authentication Error, please log in again.'),
+        ElevatedButton(
+          onPressed: () async {
+            await FirebaseAuth.instance.signOut().whenComplete(() {
+              ref.invalidate(userProfileProvider);
+              ref.invalidate(firebaseAuthChangesProvider);
+            });
+          },
+          child: const Text('Log In'),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (FirebaseAuth.instance.currentUser == null) {
+      // Redirect to a separate login or landing page to avoid infinite loop
+      return _showSignInError();
+    }
+    final Client client = ref.watch(clientProvider);
+    final firebaseAuthStream = ref.watch(firebaseAuthChangesProvider);
+
+    return firebaseAuthStream.when(
+      data: (firebaseUser) {
+        if (firebaseUser == null) {
+          return _showSignInError();
+        } else {
+          return _buildCheckInForm(client, firebaseUser.uid);
+        }
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(
+        child: Column(
+          children: [
+            PlatformText('Error: $error'),
+            ElevatedButton(
+              onPressed: () {
+                ref.invalidate(firebaseAuthChangesProvider);
+              },
+              child: const Text('Retry'),
+            ),
+          ],
         ),
       ),
     );

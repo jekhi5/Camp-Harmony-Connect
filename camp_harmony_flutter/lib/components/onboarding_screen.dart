@@ -1,9 +1,11 @@
+import 'dart:io';
+
 import 'package:camp_harmony_app/components/auth_gate.dart';
 import 'package:camp_harmony_app/serverpod_providers.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:camp_harmony_client/camp_harmony_client.dart';
 import 'check_in_page.dart';
 
@@ -13,11 +15,21 @@ class OnboardingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final client = ref.read(clientProvider);
-    final firebaseUser = firebase_auth.FirebaseAuth.instance.currentUser;
+    final firebaseUser = FirebaseAuth.instance.currentUser;
 
     if (firebaseUser == null) {
-      // If no Firebase user is logged in, redirect to the sign-in screen
-      return AuthGate(destinationWidget: CheckInPage());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text(
+                    'Authentication session expired. Please sign in again.')),
+          );
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+              builder: (ctx) => AuthGate(destinationWidget: CheckInPage())));
+        }
+      });
+      return const Scaffold(body: Center(child: Text('Redirecting...')));
     }
 
     final TextEditingController firstNameController = TextEditingController();
@@ -54,7 +66,6 @@ class OnboardingScreen extends ConsumerWidget {
             SizedBox(height: 32),
             ElevatedButton(
               onPressed: () async {
-                // Save user data to Serverpod
                 final newUser = ServerpodUser(
                   firebaseUID: firebaseUser.uid,
                   firstName: firstNameController.text,
@@ -66,14 +77,26 @@ class OnboardingScreen extends ConsumerWidget {
                   roles: ['user'],
                 );
 
-                // Implement your Serverpod endpoint to create or update the user
                 await client.serverpodUser.addUser(newUser);
 
-                ref.read(onboardingCompletedProvider.notifier).state = true;
+                ref.invalidate(userProfileProvider(firebaseUser.uid));
               },
               child: Text('Complete Onboarding'),
             ),
-            const Padding(padding: EdgeInsets.all(10), child: SignOutButton()),
+            Padding(
+                padding: const EdgeInsets.all(10),
+                child: ElevatedButton.icon(
+                    icon: Icon(
+                        Platform.isAndroid
+                            ? Icons.logout
+                            : CupertinoIcons.arrow_right_circle,
+                        size: 20),
+                    label: const Text('Sign Out'),
+                    onPressed: () async {
+                      await FirebaseAuth.instance.signOut().whenComplete(() {
+                        ref.invalidate(userProfileProvider);
+                      });
+                    })),
           ],
         ),
       ),

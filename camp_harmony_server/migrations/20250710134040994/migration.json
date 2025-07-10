@@ -1,0 +1,43 @@
+{
+  "actions": [
+    {
+      "type": "alterTable",
+      "alterTable": {
+        "name": "users",
+        "schema": "public",
+        "addColumns": [],
+        "deleteColumns": [
+          "onboardingCompleted"
+        ],
+        "modifyColumns": [],
+        "addIndexes": [],
+        "deleteIndexes": [],
+        "addForeignKeys": [],
+        "deleteForeignKeys": [],
+        "warnings": [
+          {
+            "type": "columnDropped",
+            "message": "Column \"onboardingCompleted\" of table \"users\" will be dropped.",
+            "table": "users",
+            "columns": [
+              "onboardingCompleted"
+            ],
+            "destrucive": true
+          }
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "type": "columnDropped",
+      "message": "Column \"onboardingCompleted\" of table \"users\" will be dropped.",
+      "table": "users",
+      "columns": [
+        "onboardingCompleted"
+      ],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}

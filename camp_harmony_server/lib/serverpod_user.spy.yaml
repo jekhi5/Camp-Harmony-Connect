@@ -1,0 +1,13 @@
+### This file defines the User model for the Camp Harmony application.
+### It includes fields for user information, roles, and timestamps.
+class: ServerpodUser
+table: users
+fields:
+  firebaseUID: String
+  firstName: String
+  lastName: String
+  email: String
+  phoneNumber: String
+  registrationDate: DateTime
+  isActive: bool
+  roles: List<String>

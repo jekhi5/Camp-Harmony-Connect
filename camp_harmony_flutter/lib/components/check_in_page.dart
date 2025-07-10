@@ -26,6 +26,11 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
   void _checkInOut(Client client) async {
     try {
       if (_userPhoneNumber == null) {
@@ -66,18 +71,27 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     });
   }
 
-  void _phoneNumberOnPress() {
+  void _phoneNumberOnPress(Client client, String uid) async {
     if (_editingPhoneNumber) {
-      // Save the phone number
-      _userPhoneNumber = _phoneNumberController.text.trim();
-      if (_userPhoneNumber!.isEmpty) {
+      if (!_formKey.currentState!.validate()) return;
+      String phoneNumber = _phoneNumberController.text.trim();
+      if (phoneNumber.isEmpty) {
         setState(() {
           _errorMessage = "Please enter a valid phone number.";
         });
         return;
       }
-      // TODO: Actually save phone number in DB
+
+      _userPhoneNumber = phoneNumber;
+
+      var user = await client.serverpodUser.updatePhoneNumber(uid, phoneNumber);
+      ref.invalidate(userProfileProvider(uid));
+
       setState(() {
+        if (user == null) {
+          _errorMessage = "Failed to update phone number. Please try again.";
+          return;
+        }
         _statusMessage = "Phone number updated successfully.";
         _errorMessage = '';
       });
@@ -96,126 +110,149 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   }
 
   Widget _buildCheckInForm(Client client, String firebaseUID) {
-    _userPhoneNumber = ref.watch(userProfileProvider(firebaseUID)).when(
-          data: (user) => user?.phoneNumber,
-          loading: () => null,
-          error: (error, stack) {
-            print('Error fetching user profile: $error');
-            return null;
-          },
-        );
+    final userAsync = ref.watch(userProfileProvider(firebaseUID));
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Material(
-          color: Colors.transparent,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              const Image(image: AssetImage('images/CampHarmonyLogo.jpg')),
-              const SizedBox(height: 24),
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: <Widget>[
-                    const Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Text(
-                          'Welcome to Camp Harmony! Please check in below:',
-                          style: TextStyle(
+    return userAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Error loading profile: $err')),
+      data: (user) {
+        // Pre-populate the controller when not editing
+        if (!_editingPhoneNumber) {
+          _phoneNumberController.text = user?.phoneNumber ?? '';
+        }
+
+        return SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Material(
+              color: Colors.transparent,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  const Image(image: AssetImage('images/CampHarmonyLogo.jpg')),
+                  const SizedBox(height: 24),
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: <Widget>[
+                        const Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Text(
+                            'Welcome to Camp Harmony! Please check in below:',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: _editingPhoneNumber
+                              ? TextFormField(
+                                  controller: _phoneNumberController,
+                                  keyboardType: TextInputType.phone,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Phone Number',
+                                    hintText: '123-456-7890',
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Please enter a phone number';
+                                    }
+
+                                    final pattern =
+                                        r'^\D*([2-9]\d{2})\D*(\d{3})\D*(\d{4})\D*$';
+                                    final regExp = RegExp(pattern);
+                                    if (!regExp.hasMatch(value)) {
+                                      return 'Enter a valid 10-digit US phone number';
+                                    }
+                                    return null;
+                                  },
+                                )
+                              : PlatformText(
+                                  user?.phoneNumber == null
+                                      ? "No Phone Number Found"
+                                      : "Phone Number: ${user!.phoneNumber}",
+                                ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: PlatformElevatedButton(
+                            onPressed: () =>
+                                _phoneNumberOnPress(client, firebaseUID),
+                            child: PlatformText(
+                              _editingPhoneNumber
+                                  ? "Save"
+                                  : "Edit Phone Number",
+                            ),
+                          ),
+                        ),
+                        if (!_editingPhoneNumber)
+                          PlatformElevatedButton(
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                _formKey.currentState!.reset();
+                                _checkInOut(client);
+                              }
+                            },
+                            child: PlatformText(
+                              _checkedIn == true ? 'Check out' : 'Check in',
+                            ),
+                          ),
+                        const SizedBox(height: 10),
+                        PlatformText(
+                          _statusMessage,
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                            color: Colors.orange,
                           ),
-                          textAlign: TextAlign.center,
-                        )),
-                    Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: _editingPhoneNumber
-                          ? PlatformTextField(
-                              textAlign: TextAlign.center,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(),
-                              readOnly: !_editingPhoneNumber,
-                              hintText: "Phone Number",
-                              controller: _phoneNumberController,
-                            )
-                          : PlatformText(
-                              _userPhoneNumber == null
-                                  ? "No Phone Number Found"
-                                  : "Phone Number: $_userPhoneNumber",
-                            ),
-                    ),
-                    Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: PlatformElevatedButton(
-                            onPressed: () {
-                              _phoneNumberOnPress();
-                            },
-                            child: PlatformText(_editingPhoneNumber
-                                ? "Save"
-                                : "Edit Phone Number"))),
-                    PlatformElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          _formKey.currentState!.reset();
-                          _checkInOut(client);
-                        }
-                      },
-                      child: PlatformText(
-                          _checkedIn == true ? 'Check out' : 'Check in'),
-                    ),
-                    const SizedBox(height: 10),
-                    PlatformText(
-                      _statusMessage,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.orange,
-                      ),
-                    ),
-                    PlatformText(
-                      _errorMessage,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
-                      ),
-                    ),
-                    PlatformText(
-                      'You are: ${_checkedIn == true ? 'Checked In' : 'Checked Out'}',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: _checkedIn == true ? Colors.green : Colors.red,
-                      ),
-                    ),
-                    Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: ElevatedButton.icon(
+                        ),
+                        PlatformText(
+                          _errorMessage,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                        ),
+                        PlatformText(
+                          'You are: ${_checkedIn == true ? 'Checked In' : 'Checked Out'}',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color:
+                                _checkedIn == true ? Colors.green : Colors.red,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: ElevatedButton.icon(
                             icon: Icon(
-                                Platform.isAndroid
-                                    ? Icons.logout
-                                    : CupertinoIcons.arrow_right_circle,
-                                size: 20),
+                              Platform.isAndroid
+                                  ? Icons.logout
+                                  : CupertinoIcons.arrow_right_circle,
+                              size: 20,
+                            ),
                             label: const Text('Sign Out'),
                             onPressed: () async {
-                              await FirebaseAuth.instance
-                                  .signOut()
-                                  .whenComplete(() {
-                                ref.invalidate(
-                                    userProfileProvider(firebaseUID));
-                                ref.invalidate(firebaseAuthChangesProvider);
-                              });
-                            })),
-                  ],
-                ),
+                              await FirebaseAuth.instance.signOut();
+                              ref.invalidate(userProfileProvider(firebaseUID));
+                              ref.invalidate(firebaseAuthChangesProvider);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

@@ -9,7 +9,12 @@ class ServerpodUserEndpoint extends Endpoint {
     return user;
   }
 
-  Future<ServerpodUser> addUser(Session session, ServerpodUser user) async {
+  Future<ServerpodUser?> addUser(Session session, ServerpodUser user) async {
+    final existingUser = await getUser(session, user.firebaseUID);
+    if (existingUser != null) {
+      return null;
+    }
+
     final ServerpodUser newUser = ServerpodUser(
       firebaseUID: user.firebaseUID,
       firstName: user.firstName,
@@ -25,5 +30,24 @@ class ServerpodUserEndpoint extends Endpoint {
         await ServerpodUser.db.insertRow(session, newUser);
 
     return newUserWithId;
+  }
+
+  Future<ServerpodUser?> updateUser(Session session, ServerpodUser user) async {
+    try {
+      return await ServerpodUser.db.updateRow(session, user);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<ServerpodUser?> updatePhoneNumber(
+      Session session, String uid, String phoneNumber) async {
+    final user = await getUser(session, uid);
+    if (user == null) {
+      return null;
+    }
+
+    user.phoneNumber = phoneNumber;
+    return await updateUser(session, user);
   }
 }

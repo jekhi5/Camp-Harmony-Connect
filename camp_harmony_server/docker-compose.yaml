@@ -5,9 +5,9 @@ services:
     ports:
       - "8090:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_DB: camp_harmony
-      POSTGRES_PASSWORD: "tJdnGOZ5MHQ9gFUo3XXleQ2NIT9wdsPU"
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - camp_harmony_data:/var/lib/postgresql/data
 
@@ -15,7 +15,7 @@ services:
     image: redis:6.2.6
     ports:
       - "8091:6379"
-    command: redis-server --requirepass "NoB-R8BbxpejDZPfh3eLdvLUFLuBAlIy"
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     environment:
       - REDIS_REPLICATION_MODE=master
 
@@ -25,9 +25,9 @@ services:
     ports:
       - "9090:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_DB: camp_harmony_test
-      POSTGRES_PASSWORD: "HB0GXFaGY0C_HNTp7RquxTN_o2rTeFrx"
+      POSTGRES_USER: ${POSTGRES_TEST_USERNAME}
+      POSTGRES_DB: ${POSTGRES_TEST_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD}
     volumes:
       - camp_harmony_test_data:/var/lib/postgresql/data
 
@@ -35,7 +35,7 @@ services:
     image: redis:6.2.6
     ports:
       - "9091:6379"
-    command: redis-server --requirepass "_GGd_ILG5QpZyzvivZTk8UE5gnXpHsN3"
+    command: redis-server --requirepass ${REDIS_TEST_PASSWORD}
     environment:
       - REDIS_REPLICATION_MODE=master
 

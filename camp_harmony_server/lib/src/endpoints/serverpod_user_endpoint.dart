@@ -22,7 +22,7 @@ class ServerpodUserEndpoint extends Endpoint {
       email: user.email,
       phoneNumber: user.phoneNumber,
       registrationDate: DateTime.now(),
-      isActive: true,
+      isCheckedIn: true,
       roles: ['user'],
     );
 

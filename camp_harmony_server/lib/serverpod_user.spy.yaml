@@ -9,5 +9,5 @@ fields:
   email: String
   phoneNumber: String
   registrationDate: DateTime
-  isActive: bool
+  isCheckedIn: bool
   roles: List<String>

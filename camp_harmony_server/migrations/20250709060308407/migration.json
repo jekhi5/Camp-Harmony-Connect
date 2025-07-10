@@ -1,0 +1,156 @@
+{
+  "actions": [
+    {
+      "type": "deleteTable",
+      "deleteTable": "users"
+    },
+    {
+      "type": "createTable",
+      "createTable": {
+        "name": "users",
+        "dartName": "User",
+        "module": "camp_harmony",
+        "schema": "public",
+        "columns": [
+          {
+            "name": "id",
+            "columnType": 6,
+            "isNullable": false,
+            "columnDefault": "nextval('users_id_seq'::regclass)",
+            "dartType": "int?"
+          },
+          {
+            "name": "firebaseUID",
+            "columnType": 0,
+            "isNullable": false,
+            "dartType": "String"
+          },
+          {
+            "name": "firstName",
+            "columnType": 0,
+            "isNullable": false,
+            "dartType": "String"
+          },
+          {
+            "name": "lastName",
+            "columnType": 0,
+            "isNullable": false,
+            "dartType": "String"
+          },
+          {
+            "name": "email",
+            "columnType": 0,
+            "isNullable": false,
+            "dartType": "String"
+          },
+          {
+            "name": "phoneNumber",
+            "columnType": 0,
+            "isNullable": false,
+            "dartType": "String"
+          },
+          {
+            "name": "registrationDate",
+            "columnType": 4,
+            "isNullable": false,
+            "dartType": "DateTime"
+          },
+          {
+            "name": "isActive",
+            "columnType": 1,
+            "isNullable": false,
+            "dartType": "bool"
+          },
+          {
+            "name": "roles",
+            "columnType": 8,
+            "isNullable": false,
+            "dartType": "List<String>"
+          }
+        ],
+        "foreignKeys": [],
+        "indexes": [
+          {
+            "indexName": "users_pkey",
+            "elements": [
+              {
+                "type": 0,
+                "definition": "id"
+              }
+            ],
+            "type": "btree",
+            "isUnique": true,
+            "isPrimary": true
+          }
+        ],
+        "managed": true
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "type": "columnDropped",
+      "message": "Column \"userId\" of table \"users\" will be dropped.",
+      "table": "users",
+      "columns": [
+        "userId"
+      ],
+      "destrucive": true
+    },
+    {
+      "type": "columnDropped",
+      "message": "Column \"name\" of table \"users\" will be dropped.",
+      "table": "users",
+      "columns": [
+        "name"
+      ],
+      "destrucive": true
+    },
+    {
+      "type": "columnDropped",
+      "message": "Column \"profilePictureUrl\" of table \"users\" will be dropped.",
+      "table": "users",
+      "columns": [
+        "profilePictureUrl"
+      ],
+      "destrucive": true
+    },
+    {
+      "type": "columnDropped",
+      "message": "Column \"lastLogin\" of table \"users\" will be dropped.",
+      "table": "users",
+      "columns": [
+        "lastLogin"
+      ],
+      "destrucive": true
+    },
+    {
+      "type": "columnDropped",
+      "message": "Column \"createdAt\" of table \"users\" will be dropped.",
+      "table": "users",
+      "columns": [
+        "createdAt"
+      ],
+      "destrucive": true
+    },
+    {
+      "type": "columnDropped",
+      "message": "Column \"updatedAt\" of table \"users\" will be dropped.",
+      "table": "users",
+      "columns": [
+        "updatedAt"
+      ],
+      "destrucive": true
+    },
+    {
+      "type": "tableDropped",
+      "message": "One or more columns are added to table \"users\" which cannot be added in a table migration. The complete table will be deleted and recreated.",
+      "table": "users",
+      "columns": [
+        "firebaseUID"
+      ],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}

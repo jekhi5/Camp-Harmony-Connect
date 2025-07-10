@@ -1,21 +1,28 @@
-import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider;
+import 'package:camp_harmony_app/components/onboarding_screen.dart';
+import 'package:camp_harmony_app/serverpod_providers.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AuthGate extends StatelessWidget {
+class AuthGate extends ConsumerWidget {
   final Widget destinationWidget;
 
-  const AuthGate({Key? key, required this.destinationWidget}) : super(key: key);
+  const AuthGate({super.key, required this.destinationWidget});
 
   @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final firebaseAuthStream = ref.watch(firebaseAuthChangesProvider);
+
+    return firebaseAuthStream.when(
+      data: (firebaseUser) {
+        if (firebaseUser == null) {
+          // Not logged in
           return SignInScreen(
-            providers: [EmailAuthProvider(), GoogleProvider(clientId: "")],
+            providers: [
+              EmailAuthProvider(),
+              GoogleProvider(clientId: ""),
+            ],
             headerBuilder: (context, constraints, shrinkOffset) {
               return const Padding(
                   padding: EdgeInsets.all(20),
@@ -57,10 +64,62 @@ class AuthGate extends StatelessWidget {
                   ));
             },
           );
-        }
+        } else {
+          // Logged in, check for ServerPod data
+          final userProfileAsyncValue =
+              ref.watch(userProfileProvider(firebaseUser.uid));
 
-        return destinationWidget;
+          return userProfileAsyncValue.when(
+            data: (user) {
+              if (user == null) {
+                // User has not completed onboarding, show onboarding screen
+                return OnboardingScreen();
+              }
+
+              return destinationWidget;
+            },
+            loading: () => const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
+            error: (err, stack) => Scaffold(
+              body: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Center(child: Text('Error loading user data: $err')),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Retry loading user data
+                      ref.invalidate(userProfileProvider(firebaseUser.uid));
+                      ref.invalidate(firebaseAuthChangesProvider);
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
       },
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (err, stack) => Scaffold(
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Center(child: Text('Firebase Auth error: $err')),
+            ElevatedButton(
+              onPressed: () {
+                // Retry loading user data
+                ref.invalidate(userProfileProvider);
+              },
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

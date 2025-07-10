@@ -1,9 +1,0 @@
-class: CheckInStatus
-fields:
-  userId: int
-  checkedIn: bool
-  checkInTime: DateTime?
-  checkOutTime: DateTime?
-  checkInLocation: String?
-  checkOutLocation: String?
-  statusMessage: String?

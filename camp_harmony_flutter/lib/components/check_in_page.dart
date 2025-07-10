@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:camp_harmony_client/camp_harmony_client.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -99,7 +99,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   @override
   Widget build(BuildContext context) {
     // Reset when Firebase Auth state changes
-    ref.listen<AsyncValue<User?>>(
+    ref.listen<AsyncValue<firebase_auth.User?>>(
       firebaseAuthChangesProvider,
       (_, next) => next.whenData((_) {
         setState(() {
@@ -122,7 +122,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
           // not signed in
           return Center(
             child: ElevatedButton(
-              onPressed: () => FirebaseAuth.instance.signOut(),
+              onPressed: () => firebase_auth.FirebaseAuth.instance.signOut(),
               child: const Text('Log In'),
             ),
           );
@@ -140,7 +140,8 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
               // no profile in DB
               return Center(
                 child: ElevatedButton(
-                  onPressed: () => FirebaseAuth.instance.signOut(),
+                  onPressed: () =>
+                      firebase_auth.FirebaseAuth.instance.signOut(),
                   child: const Text('Log Out'),
                 ),
               );
@@ -263,7 +264,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                         ),
                         label: const Text('Sign Out'),
                         onPressed: () {
-                          FirebaseAuth.instance.signOut();
+                          firebase_auth.FirebaseAuth.instance.signOut();
                           // providers will be invalidated by the listen above
                         },
                       ),

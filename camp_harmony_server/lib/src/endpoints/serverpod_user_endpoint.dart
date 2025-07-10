@@ -50,4 +50,17 @@ class ServerpodUserEndpoint extends Endpoint {
     user.phoneNumber = phoneNumber;
     return await updateUser(session, user);
   }
+
+  Future<ServerpodUser?> updateProfile(Session session, String uid,
+      String firstName, String lastName, String phoneNumber) async {
+    final user = await getUser(session, uid);
+    if (user == null) {
+      return null;
+    }
+
+    user.firstName = firstName;
+    user.lastName = lastName;
+    user.phoneNumber = phoneNumber;
+    return await updateUser(session, user);
+  }
 }

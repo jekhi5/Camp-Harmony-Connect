@@ -4,7 +4,6 @@ import 'package:camp_harmony_client/camp_harmony_client.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../serverpod_providers.dart';
 
@@ -30,12 +29,23 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     super.dispose();
   }
 
-  Future<void> _toggleEdit(String? currentPhone) async {
-    if (!_editing) {
-      // entering edit mode: prefill
-      _phoneCtrl.text = currentPhone ?? '';
-    }
-    setState(() => _editing = !_editing);
+  String? _phoneValidator(String? v) {
+    if (v == null || v.trim().isEmpty) return 'Enter a phone number';
+    final pat = r'^(\+\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$';
+    if (!RegExp(pat).hasMatch(v)) return 'Invalid US phone number';
+    return null;
+  }
+
+  void _startEdit(String? currentPhone) {
+    // Prefill once
+    _phoneCtrl.text = currentPhone ?? '';
+    setState(() => _editing = true);
+  }
+
+  void _cancelEdit(String? originalPhone) {
+    // Revert and exit edit mode
+    _phoneCtrl.text = originalPhone ?? '';
+    setState(() => _editing = false);
   }
 
   Future<void> _savePhone(Client client, String uid) async {
@@ -52,7 +62,6 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
           .updatePhoneNumber(uid, _phoneCtrl.text.trim());
       if (updated == null) throw Exception('Server returned null');
 
-      // re-fetch userProfile (so both phone & checked-in refresh)
       ref.invalidate(userProfileProvider(uid));
 
       setState(() {
@@ -74,7 +83,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       _errorMsg = '';
     });
 
-    bool success = currentlyIn
+    final success = currentlyIn
         ? await client.checkIn.checkOut(uid)
         : await client.checkIn.checkIn(uid);
 
@@ -96,12 +105,27 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     setState(() => _saving = false);
   }
 
+  Widget _buildSectionCard({required Widget child}) {
+    return Card(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      elevation: 1,
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: child,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Reset when Firebase Auth state changes
-    ref.listen<AsyncValue<firebase_auth.User?>>(
-      firebaseAuthChangesProvider,
-      (_, next) => next.whenData((_) {
+    // Reset local UI whenever Firebase user changes
+    ref.listen<AsyncValue<firebase_auth.User?>>(firebaseAuthChangesProvider,
+        (_, next) {
+      next.whenData((_) {
         setState(() {
           _editing = false;
           _saving = false;
@@ -109,23 +133,17 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
           _errorMsg = '';
           _phoneCtrl.clear();
         });
-      }),
-    );
+      });
+    });
 
     final authState = ref.watch(firebaseAuthChangesProvider);
 
     return authState.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('Auth error: $err')),
+      error: (e, _) => Center(child: Text('Auth error: $e')),
       data: (fbUser) {
         if (fbUser == null) {
-          // not signed in
-          return Center(
-            child: ElevatedButton(
-              onPressed: () => firebase_auth.FirebaseAuth.instance.signOut(),
-              child: const Text('Log In'),
-            ),
-          );
+          return _buildSignInPrompt();
         }
 
         final uid = fbUser.uid;
@@ -134,141 +152,149 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
 
         return profile.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, _) => Center(child: Text('Profile error: $err')),
+          error: (e, _) => Center(child: Text('Profile error: $e')),
           data: (user) {
-            if (user == null) {
-              // no profile in DB
-              return Center(
-                child: ElevatedButton(
-                  onPressed: () =>
-                      firebase_auth.FirebaseAuth.instance.signOut(),
-                  child: const Text('Log Out'),
-                ),
-              );
-            }
+            if (user == null) return _buildNoProfile();
 
             final isCheckedIn = user.isCheckedIn;
+            final accent = Theme.of(context).colorScheme.secondary;
 
-            return SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Material(
-                  color: Colors.transparent,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 24),
-                      const Image(
-                        image: AssetImage('images/CampHarmonyLogo.jpg'),
-                      ),
-                      const SizedBox(height: 24),
+            return Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Container(
+                width: double.infinity,
+                height: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.purple.shade50, Colors.white],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+                child: SafeArea(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 45),
+                        Image.asset('images/CampHarmonyLogo.jpg', height: 275),
+                        const SizedBox(height: 75),
 
-                      // Phone number
-                      Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            _editing
-                                ? TextFormField(
-                                    controller: _phoneCtrl,
-                                    keyboardType: TextInputType.phone,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Phone Number',
-                                      hintText: '123-456-7890',
+                        // Phone section
+                        _buildSectionCard(
+                          child: ListTile(
+                            leading: const Icon(Icons.phone),
+                            title: _editing
+                                ? Form(
+                                    key: _formKey,
+                                    child: TextFormField(
+                                      controller: _phoneCtrl,
+                                      keyboardType: TextInputType.phone,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Phone Number',
+                                      ),
+                                      validator: _phoneValidator,
                                     ),
-                                    validator: (v) {
-                                      if (v == null || v.trim().isEmpty) {
-                                        return 'Enter a phone number';
-                                      }
-                                      final pat =
-                                          r'^\D*([2-9]\d{2})\D*(\d{3})\D*(\d{4})\D*$';
-                                      if (!RegExp(pat).hasMatch(v)) {
-                                        return 'Invalid US phone number';
-                                      }
-                                      return null;
-                                    },
                                   )
-                                : PlatformText(
-                                    user.phoneNumber == ''
-                                        ? 'No phone on file'
-                                        : 'Phone: ${user.phoneNumber}',
+                                : Text(
+                                    user.phoneNumber.isNotEmpty == true
+                                        ? 'Phone: ${user.phoneNumber}'
+                                        : 'No phone on file',
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium,
                                   ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                PlatformElevatedButton(
-                                  onPressed: _saving
-                                      ? null
-                                      : () => _toggleEdit(user.phoneNumber),
-                                  child: PlatformText(
-                                      _editing ? 'Cancel' : 'Edit Phone'),
+                            trailing: _editing
+                                ? Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.check, color: accent),
+                                        onPressed: _saving
+                                            ? null
+                                            : () => _savePhone(client, uid),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.clear),
+                                        onPressed: _saving
+                                            ? null
+                                            : () =>
+                                                _cancelEdit(user.phoneNumber),
+                                      ),
+                                    ],
+                                  )
+                                : IconButton(
+                                    icon: const Icon(Icons.edit),
+                                    onPressed: () =>
+                                        _startEdit(user.phoneNumber),
+                                  ),
+                          ),
+                        ),
+
+                        _buildSectionCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                'Status: ${isCheckedIn ? 'Checked In' : 'Checked Out'}',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium!
+                                    .copyWith(
+                                      color: isCheckedIn
+                                          ? Colors.green
+                                          : Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  shape: const StadiumBorder(),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 36, vertical: 12),
                                 ),
-                                const SizedBox(width: 12),
-                                if (_editing)
-                                  PlatformElevatedButton(
-                                    onPressed: _saving
-                                        ? null
-                                        : () => _savePhone(client, uid),
-                                    child: _saving
-                                        ? const CupertinoActivityIndicator()
-                                        : PlatformText('Save'),
-                                  ),
-                              ],
+                                onPressed: _saving
+                                    ? null
+                                    : () => _toggleCheckIn(
+                                        client, uid, isCheckedIn),
+                                child: Text(
+                                    isCheckedIn ? 'Check out' : 'Check in'),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        if (_statusMsg.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Text(
+                              _statusMsg,
+                              style: TextStyle(color: accent),
                             ),
-                          ],
+                          ),
+                        if (_errorMsg.isNotEmpty)
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 4),
+                            child: Text(
+                              _errorMsg,
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+
+                        const SizedBox(height: 24),
+                        TextButton.icon(
+                          onPressed: () =>
+                              firebase_auth.FirebaseAuth.instance.signOut(),
+                          icon: Icon(
+                            Platform.isAndroid
+                                ? Icons.logout
+                                : CupertinoIcons.arrow_right_circle,
+                          ),
+                          label: const Text('Sign Out'),
                         ),
-                      ),
 
-                      const Divider(height: 32),
-
-                      // Check in/out
-                      PlatformElevatedButton(
-                        onPressed: _saving
-                            ? null
-                            : () => _toggleCheckIn(client, uid, isCheckedIn),
-                        child: PlatformText(
-                            isCheckedIn ? 'Check out' : 'Check in'),
-                      ),
-
-                      const SizedBox(height: 12),
-                      PlatformText(
-                        'Status: ${isCheckedIn ? 'Checked In' : 'Checked Out'}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: isCheckedIn ? Colors.green : Colors.red,
-                        ),
-                      ),
-
-                      // Messages
-                      if (_statusMsg.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        PlatformText(_statusMsg,
-                            style: const TextStyle(color: Colors.orangeAccent)),
+                        const SizedBox(height: 24),
                       ],
-                      if (_errorMsg.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        PlatformText(_errorMsg,
-                            style: const TextStyle(color: Colors.redAccent)),
-                      ],
-
-                      const SizedBox(height: 24),
-
-                      // Sign out
-                      ElevatedButton.icon(
-                        icon: Icon(
-                          Platform.isAndroid
-                              ? Icons.logout
-                              : CupertinoIcons.arrow_right_circle,
-                          size: 20,
-                        ),
-                        label: const Text('Sign Out'),
-                        onPressed: () {
-                          firebase_auth.FirebaseAuth.instance.signOut();
-                          // providers will be invalidated by the listen above
-                        },
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -276,6 +302,24 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildNoProfile() {
+    return Center(
+      child: ElevatedButton(
+        onPressed: () => firebase_auth.FirebaseAuth.instance.signOut(),
+        child: const Text('Log Out'),
+      ),
+    );
+  }
+
+  Widget _buildSignInPrompt() {
+    return Center(
+      child: ElevatedButton(
+        onPressed: () => firebase_auth.FirebaseAuth.instance.signOut(),
+        child: const Text('Log In'),
+      ),
     );
   }
 }

@@ -113,7 +113,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
         return profile.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Error loading profile: \$e')),
+          error: (e, _) => Center(child: Text('Error loading profile: $e')),
           data: (user) {
             if (user == null) {
               return Center(

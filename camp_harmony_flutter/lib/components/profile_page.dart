@@ -69,7 +69,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         _editing = false;
       });
     } catch (e) {
-      setState(() => _errorMessage = 'Failed to save: \$e');
+      setState(() => _errorMessage = 'Failed to save: $e');
     } finally {
       setState(() => _saving = false);
     }

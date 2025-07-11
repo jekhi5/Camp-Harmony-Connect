@@ -287,10 +287,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                 style: TextStyle(color: accent)),
                           ),
                         if (_errorMessage.isNotEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                             child: Text(
-                              'Failed to save changes',
+                              'Failed to save changes: $_errorMessage',
                               style: TextStyle(color: Colors.red),
                             ),
                           ),

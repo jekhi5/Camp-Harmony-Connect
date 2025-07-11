@@ -196,7 +196,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                                     ),
                                   )
                                 : Text(
-                                    user.phoneNumber.isNotEmpty == true
+                                    user.phoneNumber.isNotEmpty
                                         ? 'Phone: ${user.phoneNumber}'
                                         : 'No phone on file',
                                     style:

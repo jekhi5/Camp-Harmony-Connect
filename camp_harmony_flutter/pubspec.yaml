@@ -47,6 +47,9 @@ dependencies:
   firebase_ui_oauth_google: ^1.2.14
   serverpod_flutter: ^2.9.1
   flutter_riverpod: ^2.6.1
+  flutter_localizations:
+    sdk: flutter
+  intl: 
 
 dev_dependencies:
   flutter_test:

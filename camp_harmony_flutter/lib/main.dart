@@ -1,5 +1,7 @@
 import 'package:camp_harmony_app/components/camp_harmony_app.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -72,5 +74,36 @@ Future<void> main() async {
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  runApp(const ProviderScope(child: PlatformApp(home: CampHarmonyApp())));
+  runApp(ProviderScope(
+    child: PlatformApp(
+      home: CampHarmonyApp(),
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [Locale('en')],
+      material: (_, __) => MaterialAppData(
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          scaffoldBackgroundColor: Colors.transparent,
+        ),
+      ),
+      cupertino: (_, __) => CupertinoAppData(
+        theme: const CupertinoThemeData(
+          primaryColor: CupertinoColors.activeBlue,
+          barBackgroundColor: CupertinoColors.systemGrey6,
+          textTheme: CupertinoTextThemeData(
+            navTitleTextStyle: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            textStyle: TextStyle(
+              fontSize: 17,
+            ),
+          ),
+        ),
+      ),
+    ),
+  ));
 }

@@ -44,6 +44,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     setState(() => _editing = false);
   }
 
+  String? _phoneValidator(String? v) {
+    if (v == null || v.trim().isEmpty) return 'Enter a phone number';
+    final pat = r'^(\+\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$';
+    if (!RegExp(pat).hasMatch(v)) return 'Invalid US phone number';
+    return null;
+  }
+
   Future<void> _saveProfile(Client client, String uid) async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -81,6 +88,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Listen for auth changes to reset editing state
     ref.listen<AsyncValue<firebase_auth.User?>>(firebaseAuthChangesProvider,
         (_, next) {
       next.whenData((_) {
@@ -125,200 +133,334 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               );
             }
 
-            final accent = Theme.of(context).colorScheme.primary;
-
-            return Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Container(
-                width: double.infinity,
-                height: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.blue.shade50, Colors.white],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-                child: SafeArea(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 24),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 24),
-                        Image.asset('images/CampHarmonyLogo.jpg', height: 100),
-                        const SizedBox(height: 16),
-
-                        Card(
-                          color: Theme.of(context).colorScheme.surfaceVariant,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          elevation: 1,
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          child: Column(
-                            children: [
-                              ListTile(
-                                leading: const Icon(Icons.person),
-                                title: Text(
-                                  'Profile',
-                                  style:
-                                      Theme.of(context).textTheme.headlineSmall,
-                                ),
-                                trailing: _editing
-                                    ? Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(Icons.check,
-                                                color: accent),
-                                            onPressed: _saving
-                                                ? null
-                                                : () =>
-                                                    _saveProfile(client, uid),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(Icons.clear),
-                                            onPressed:
-                                                _saving ? null : _cancelEdit,
-                                          ),
-                                        ],
-                                      )
-                                    : IconButton(
-                                        icon: const Icon(Icons.edit),
-                                        onPressed: () => _startEdit(user),
-                                      ),
-                              ),
-                              const Divider(),
-                              Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Form(
-                                  key: _formKey,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      // First Name
-                                      Text('First Name',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelLarge),
-                                      const SizedBox(height: 4),
-                                      _editing
-                                          ? TextFormField(
-                                              controller: _firstNameCtrl,
-                                              decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                              ),
-                                              validator: _notEmptyValidator,
-                                            )
-                                          : Text(user.firstName,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium),
-                                      const SizedBox(height: 12),
-
-                                      // Last Name
-                                      Text('Last Name',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelLarge),
-                                      const SizedBox(height: 4),
-                                      _editing
-                                          ? TextFormField(
-                                              controller: _lastNameCtrl,
-                                              decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                              ),
-                                              validator: _notEmptyValidator,
-                                            )
-                                          : Text(user.lastName,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium),
-                                      const SizedBox(height: 12),
-
-                                      // Phone Number
-                                      Text('Phone Number',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelLarge),
-                                      const SizedBox(height: 4),
-                                      _editing
-                                          ? TextFormField(
-                                              controller: _phoneCtrl,
-                                              keyboardType: TextInputType.phone,
-                                              decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                              ),
-                                              validator: (v) =>
-                                                  v == null || v.trim().isEmpty
-                                                      ? 'Enter phone'
-                                                      : null,
-                                            )
-                                          : Text(user.phoneNumber,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium),
-                                      const SizedBox(height: 12),
-
-                                      // Email (read-only)
-                                      Text('Email',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelLarge),
-                                      const SizedBox(height: 4),
-                                      Text(user.email,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Status or error
-                        if (_statusMessage.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Text(_statusMessage,
-                                style: TextStyle(color: accent)),
-                          ),
-                        if (_errorMessage.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Text(
-                              'Failed to save changes: $_errorMessage',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-
-                        const SizedBox(height: 16),
-
-                        // Sign out
-                        TextButton.icon(
-                          icon: Icon(
-                            Platform.isAndroid
-                                ? Icons.logout
-                                : CupertinoIcons.arrow_right_circle,
-                          ),
-                          label: const Text('Sign Out'),
-                          onPressed: () =>
-                              firebase_auth.FirebaseAuth.instance.signOut(),
-                        ),
-
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
+            final isIOS = Platform.isIOS;
+            return isIOS
+                ? _buildCupertinoPage(context, user, client, uid)
+                : _buildMaterialPage(context, user, client, uid);
           },
         );
       },
+    );
+  }
+
+  Widget _buildMaterialPage(
+      BuildContext context, ServerpodUser user, Client client, String uid) {
+    final accent = Theme.of(context).colorScheme.primary;
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade50, Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Column(
+              children: [
+                const SizedBox(height: 24),
+                Image.asset('images/CampHarmonyLogo.jpg', height: 100),
+                const SizedBox(height: 16),
+                Card(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  elevation: 1,
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.person),
+                        title: Text(
+                          'Profile',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        trailing: _editing
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.check, color: accent),
+                                    onPressed: _saving
+                                        ? null
+                                        : () => _saveProfile(client, uid),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: _saving ? null : _cancelEdit,
+                                  ),
+                                ],
+                              )
+                            : IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () => _startEdit(user),
+                              ),
+                      ),
+                      const Divider(),
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text('First Name',
+                                  style:
+                                      Theme.of(context).textTheme.labelLarge),
+                              const SizedBox(height: 4),
+                              _editing
+                                  ? TextFormField(
+                                      controller: _firstNameCtrl,
+                                      decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      validator: _notEmptyValidator,
+                                    )
+                                  : Text(user.firstName,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium),
+                              const SizedBox(height: 12),
+                              Text('Last Name',
+                                  style:
+                                      Theme.of(context).textTheme.labelLarge),
+                              const SizedBox(height: 4),
+                              _editing
+                                  ? TextFormField(
+                                      controller: _lastNameCtrl,
+                                      decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      validator: _notEmptyValidator,
+                                    )
+                                  : Text(user.lastName,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium),
+                              const SizedBox(height: 12),
+                              Text('Phone Number',
+                                  style:
+                                      Theme.of(context).textTheme.labelLarge),
+                              const SizedBox(height: 4),
+                              _editing
+                                  ? TextFormField(
+                                      controller: _phoneCtrl,
+                                      keyboardType: TextInputType.phone,
+                                      decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      validator: _phoneValidator,
+                                    )
+                                  : Text(user.phoneNumber,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium),
+                              const SizedBox(height: 12),
+                              Text('Email',
+                                  style:
+                                      Theme.of(context).textTheme.labelLarge),
+                              const SizedBox(height: 4),
+                              Text(user.email,
+                                  style:
+                                      Theme.of(context).textTheme.bodyMedium),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (_statusMessage.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child:
+                        Text(_statusMessage, style: TextStyle(color: accent)),
+                  ),
+                if (_errorMessage.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'Failed to save changes: $_errorMessage',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                TextButton.icon(
+                  icon: Icon(
+                    Icons.logout,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  label: const Text('Sign Out'),
+                  onPressed: () =>
+                      firebase_auth.FirebaseAuth.instance.signOut(),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  CupertinoListTile _buildCupertinoListTile(BuildContext context, bool editing,
+      String userValue, String fieldTitle, TextEditingController controller,
+      [TextInputType keyboardType = TextInputType.text,
+      String? Function(String?)? validator]) {
+    final labelColor = CupertinoColors.label.resolveFrom(context);
+    const double kWidth = 180;
+
+    return CupertinoListTile(
+        title: Text(fieldTitle, style: TextStyle(color: labelColor)),
+        trailing: SizedBox(
+          width: kWidth,
+          child: _editing
+              ? CupertinoTextFormFieldRow(
+                  controller: controller,
+                  textAlign: TextAlign.right,
+                  textDirection: TextDirection.ltr,
+                  style: TextStyle(color: labelColor),
+                  keyboardType: keyboardType,
+                  placeholder: userValue,
+                  placeholderStyle: TextStyle(color: labelColor),
+                  validator: validator,
+                )
+              : Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        userValue,
+                        style: TextStyle(
+                          color: CupertinoColors.label.resolveFrom(context),
+                        ),
+                      )),
+                ),
+        ));
+  }
+
+  Widget _buildCupertinoPage(
+    BuildContext context,
+    ServerpodUser user,
+    Client client,
+    String uid,
+  ) {
+    final primaryColor = CupertinoTheme.of(context).primaryColor;
+    final labelColor = CupertinoColors.label.resolveFrom(context);
+
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        leading: _editing
+            ? CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: _cancelEdit,
+                child: const Text('Cancel'),
+              )
+            : null,
+        middle: Text(_editing ? 'Edit Profile' : 'Profile'),
+        trailing: _editing
+            ? CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: _saving ? null : () => _saveProfile(client, uid),
+                child: const Text('Save'),
+              )
+            : CupertinoButton(
+                padding: EdgeInsets.zero,
+                child: Text('Edit',
+                    style: TextStyle(color: primaryColor, fontSize: 16)),
+                onPressed: () => _startEdit(user),
+              ),
+      ),
+      child: SafeArea(
+        child: Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    children: [
+                      // Profile fields
+                      CupertinoListSection.insetGrouped(
+                        header: Text(
+                          'Hi ${user.firstName}!',
+                          style: TextStyle(color: labelColor),
+                        ),
+                        children: [
+                          _buildCupertinoListTile(context, _editing,
+                              user.firstName, 'First Name', _firstNameCtrl),
+                          _buildCupertinoListTile(context, _editing,
+                              user.lastName, 'Last Name', _lastNameCtrl),
+                          _buildCupertinoListTile(
+                              context,
+                              _editing,
+                              user.phoneNumber,
+                              'Phone Number',
+                              _phoneCtrl,
+                              TextInputType.phone,
+                              _phoneValidator),
+                          CupertinoListTile(
+                            title: Text(
+                              'Email',
+                              style: TextStyle(color: labelColor),
+                            ),
+                            trailing: Text(user.email,
+                                style: TextStyle(
+                                    color: CupertinoColors.inactiveGray)),
+                          ),
+                        ],
+                      ),
+
+                      // Status messages
+                      if (_statusMessage.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: Text(
+                            _statusMessage,
+                            style: TextStyle(color: primaryColor),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      if (_errorMessage.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: Text(
+                            _errorMessage,
+                            style: const TextStyle(color: Colors.red),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: CupertinoButton.filled(
+                          onPressed: () =>
+                              firebase_auth.FirebaseAuth.instance.signOut(),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(CupertinoIcons.square_arrow_right),
+                              SizedBox(width: 8),
+                              Text('Sign Out'),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )),
+      ),
     );
   }
 }

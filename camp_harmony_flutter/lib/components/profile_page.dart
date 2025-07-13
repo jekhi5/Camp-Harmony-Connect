@@ -328,8 +328,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   textDirection: TextDirection.ltr,
                   style: TextStyle(color: labelColor),
                   keyboardType: keyboardType,
-                  placeholder: userValue,
-                  placeholderStyle: TextStyle(color: labelColor),
+                  placeholder: fieldTitle,
+                  placeholderStyle:
+                      TextStyle(color: labelColor.withOpacity(0.5)),
                   validator: validator,
                 )
               : Padding(

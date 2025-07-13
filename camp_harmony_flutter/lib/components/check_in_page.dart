@@ -37,13 +37,11 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   }
 
   void _startEdit(String? currentPhone) {
-    // Prefill once
     _phoneCtrl.text = currentPhone ?? '';
     setState(() => _editing = true);
   }
 
   void _cancelEdit(String? originalPhone) {
-    // Revert and exit edit mode
     _phoneCtrl.text = originalPhone ?? '';
     setState(() => _editing = false);
   }
@@ -76,7 +74,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   }
 
   Future<void> _toggleCheckIn(
-      Client client, String uid, bool currentlyIn) async {
+      Client client, String firebaseUID, bool currentlyIn) async {
     setState(() {
       _saving = true;
       _statusMsg = '';
@@ -84,11 +82,11 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     });
 
     final success = currentlyIn
-        ? await client.checkIn.checkOut(uid)
-        : await client.checkIn.checkIn(uid);
+        ? await client.checkIn.checkOut(firebaseUID)
+        : await client.checkIn.checkIn(firebaseUID);
 
     if (success) {
-      ref.invalidate(userProfileProvider(uid));
+      ref.invalidate(userProfileProvider(firebaseUID));
       setState(() {
         _statusMsg = currentlyIn
             ? 'Checked out successfully!'
@@ -122,7 +120,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Reset local UI whenever Firebase user changes
+    // reset UI when auth changes
     ref.listen<AsyncValue<firebase_auth.User?>>(firebaseAuthChangesProvider,
         (_, next) {
       next.whenData((_) {
@@ -142,9 +140,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Auth error: $e')),
       data: (fbUser) {
-        if (fbUser == null) {
-          return _buildSignInPrompt();
-        }
+        if (fbUser == null) return _buildSignInPrompt();
 
         final uid = fbUser.uid;
         final client = ref.watch(clientProvider);
@@ -156,152 +152,290 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
           data: (user) {
             if (user == null) return _buildNoProfile();
 
-            final isCheckedIn = user.isCheckedIn;
-            final accent = Theme.of(context).colorScheme.secondary;
-
-            return Scaffold(
-              backgroundColor: Colors.transparent,
-              body: Container(
-                width: double.infinity,
-                height: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.purple.shade50, Colors.white],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-                child: SafeArea(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 45),
-                        Image.asset('images/CampHarmonyLogo.jpg', height: 275),
-                        const SizedBox(height: 75),
-
-                        // Phone section
-                        _buildSectionCard(
-                          child: ListTile(
-                            leading: const Icon(Icons.phone),
-                            title: _editing
-                                ? Form(
-                                    key: _formKey,
-                                    child: TextFormField(
-                                      controller: _phoneCtrl,
-                                      keyboardType: TextInputType.phone,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Phone Number',
-                                      ),
-                                      validator: _phoneValidator,
-                                    ),
-                                  )
-                                : Text(
-                                    user.phoneNumber.isNotEmpty
-                                        ? 'Phone: ${user.phoneNumber}'
-                                        : 'No phone on file',
-                                    style:
-                                        Theme.of(context).textTheme.bodyMedium,
-                                  ),
-                            trailing: _editing
-                                ? Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.check, color: accent),
-                                        onPressed: _saving
-                                            ? null
-                                            : () => _savePhone(client, uid),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.clear),
-                                        onPressed: _saving
-                                            ? null
-                                            : () =>
-                                                _cancelEdit(user.phoneNumber),
-                                      ),
-                                    ],
-                                  )
-                                : IconButton(
-                                    icon: const Icon(Icons.edit),
-                                    onPressed: () =>
-                                        _startEdit(user.phoneNumber),
-                                  ),
-                          ),
-                        ),
-
-                        _buildSectionCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                'Status: ${isCheckedIn ? 'Checked In' : 'Checked Out'}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium!
-                                    .copyWith(
-                                      color: isCheckedIn
-                                          ? Colors.green
-                                          : Colors.red,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                              const SizedBox(height: 8),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  shape: const StadiumBorder(),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 36, vertical: 12),
-                                ),
-                                onPressed: _saving
-                                    ? null
-                                    : () => _toggleCheckIn(
-                                        client, uid, isCheckedIn),
-                                child: Text(
-                                    isCheckedIn ? 'Check out' : 'Check in'),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        if (_statusMsg.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Text(
-                              _statusMsg,
-                              style: TextStyle(color: accent),
-                            ),
-                          ),
-                        if (_errorMsg.isNotEmpty)
-                          Padding(
-                            padding: EdgeInsets.symmetric(vertical: 4),
-                            child: Text(
-                              _errorMsg,
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-
-                        const SizedBox(height: 24),
-                        TextButton.icon(
-                          onPressed: () =>
-                              firebase_auth.FirebaseAuth.instance.signOut(),
-                          icon: Icon(
-                            Platform.isAndroid
-                                ? Icons.logout
-                                : CupertinoIcons.arrow_right_circle,
-                          ),
-                          label: const Text('Sign Out'),
-                        ),
-
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
+            return Platform.isIOS
+                ? _buildCupertinoPage(context, user, client)
+                : _buildMaterialPage(context, user, client, uid);
           },
         );
       },
+    );
+  }
+
+  Widget _buildMaterialPage(
+      BuildContext context, ServerpodUser user, Client client, String uid) {
+    final isCheckedIn = user.isCheckedIn;
+    final accent = Theme.of(context).colorScheme.secondary;
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.purple.shade50, Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 45),
+                Image.asset('images/CampHarmonyLogo.jpg', height: 275),
+                const SizedBox(height: 75),
+
+                // Phone section
+                _buildSectionCard(
+                  child: ListTile(
+                    leading: const Icon(Icons.phone),
+                    title: _editing
+                        ? Form(
+                            key: _formKey,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            child: TextFormField(
+                              controller: _phoneCtrl,
+                              keyboardType: TextInputType.phone,
+                              decoration: const InputDecoration(
+                                labelText: 'Phone Number',
+                              ),
+                              validator: _phoneValidator,
+                            ),
+                          )
+                        : Text(
+                            user.phoneNumber.isNotEmpty
+                                ? 'Phone: ${user.phoneNumber}'
+                                : 'No phone on file',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                    trailing: _editing
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.check, color: accent),
+                                onPressed: _saving
+                                    ? null
+                                    : () => _savePhone(client, uid),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: _saving
+                                    ? null
+                                    : () => _cancelEdit(user.phoneNumber),
+                              ),
+                            ],
+                          )
+                        : IconButton(
+                            icon: const Icon(Icons.edit),
+                            onPressed: () => _startEdit(user.phoneNumber),
+                          ),
+                  ),
+                ),
+
+                // Check-In section
+                _buildSectionCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Status: ${isCheckedIn ? 'On camp grounds' : 'Not on camp grounds'}',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium!
+                            .copyWith(
+                              color: isCheckedIn ? Colors.green : Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shape: const StadiumBorder(),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 36, vertical: 12),
+                        ),
+                        onPressed: _saving
+                            ? null
+                            : () => _toggleCheckIn(client, uid, isCheckedIn),
+                        child: Text(isCheckedIn ? 'Check out' : 'Check in'),
+                      ),
+                    ],
+                  ),
+                ),
+
+                if (_statusMsg.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(_statusMsg, style: TextStyle(color: accent)),
+                  ),
+                if (_errorMsg.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(_errorMsg,
+                        style: const TextStyle(color: Colors.red)),
+                  ),
+
+                const SizedBox(height: 24),
+                TextButton.icon(
+                  onPressed: () =>
+                      firebase_auth.FirebaseAuth.instance.signOut(),
+                  icon: Icon(
+                    Platform.isAndroid
+                        ? Icons.logout
+                        : CupertinoIcons.arrow_right_circle,
+                  ),
+                  label: const Text('Sign Out'),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCupertinoPage(
+      BuildContext context, ServerpodUser user, Client client) {
+    final isCheckedIn = user.isCheckedIn;
+    final accent = CupertinoTheme.of(context).primaryColor;
+    final labelColor = CupertinoColors.label.resolveFrom(context);
+    final placeholderColor =
+        CupertinoColors.placeholderText.resolveFrom(context);
+
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Check In'),
+      ),
+      child: SafeArea(
+        child: Form(
+          key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: ListView(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            children: [
+              // Logo
+              Center(
+                  child:
+                      Image.asset('images/CampHarmonyLogo.jpg', height: 100)),
+              const SizedBox(height: 24),
+
+              // Phone section
+              CupertinoListSection.insetGrouped(
+                header:
+                    Text('Phone Number', style: TextStyle(color: labelColor)),
+                children: [
+                  CupertinoListTile(
+                    title: Icon(CupertinoIcons.phone, color: accent),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 200,
+                          child: _editing
+                              ? CupertinoTextFormFieldRow(
+                                  controller: _phoneCtrl,
+                                  keyboardType: TextInputType.phone,
+                                  style: TextStyle(color: labelColor),
+                                  placeholderStyle:
+                                      TextStyle(color: placeholderColor),
+                                  placeholder: user.phoneNumber,
+                                  validator: _phoneValidator,
+                                )
+                              : Text(
+                                  user.phoneNumber.isNotEmpty
+                                      ? user.phoneNumber
+                                      : 'No phone on file',
+                                  style: TextStyle(color: placeholderColor)),
+                        ),
+                        // const SizedBox(width: 8),
+                        _editing
+                            ? Row(
+                                children: [
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    child: Icon(CupertinoIcons.check_mark,
+                                        color: accent),
+                                    onPressed: () =>
+                                        _savePhone(client, user.firebaseUID),
+                                  ),
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    child: const Icon(CupertinoIcons.clear),
+                                    onPressed: () =>
+                                        _cancelEdit(user.phoneNumber),
+                                  ),
+                                ],
+                              )
+                            : CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                child: Text('Edit',
+                                    style: TextStyle(color: accent)),
+                                onPressed: () => _startEdit(user.phoneNumber),
+                              ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              // Check-In section
+              CupertinoListSection.insetGrouped(
+                header: Text('Attendance', style: TextStyle(color: labelColor)),
+                children: [
+                  CupertinoListTile(
+                    title: Text(
+                      isCheckedIn ? 'On camp grounds' : 'Not on camp grounds',
+                      style: TextStyle(
+                        color: isCheckedIn
+                            ? CupertinoColors.activeGreen
+                            : CupertinoColors.systemRed,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  CupertinoListTile(
+                    title: const Text(''),
+                    trailing: CupertinoButton.filled(
+                      onPressed: () =>
+                          _toggleCheckIn(client, user.firebaseUID, isCheckedIn),
+                      child: Text(isCheckedIn ? 'Check out' : 'Check in'),
+                    ),
+                  ),
+                ],
+              ),
+
+              if (_statusMsg.isNotEmpty)
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(_statusMsg,
+                      style: TextStyle(color: accent),
+                      textAlign: TextAlign.center),
+                ),
+              if (_errorMsg.isNotEmpty)
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(_errorMsg,
+                      style: const TextStyle(color: CupertinoColors.systemRed),
+                      textAlign: TextAlign.center),
+                ),
+
+              // Sign-out
+              const SizedBox(height: 24),
+              CupertinoButton(
+                onPressed: () => firebase_auth.FirebaseAuth.instance.signOut(),
+                child: const Text('Sign Out'),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

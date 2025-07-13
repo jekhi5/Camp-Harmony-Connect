@@ -179,7 +179,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       ListTile(
                         leading: const Icon(Icons.person),
                         title: Text(
-                          'Profile',
+                          'Hi ${user.firstName}!',
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
                         trailing: _editing
@@ -328,7 +328,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   textDirection: TextDirection.ltr,
                   style: TextStyle(color: labelColor),
                   keyboardType: keyboardType,
-                  placeholder: fieldTitle,
+                  placeholder: userValue,
                   placeholderStyle:
                       TextStyle(color: labelColor.withOpacity(0.5)),
                   validator: validator,

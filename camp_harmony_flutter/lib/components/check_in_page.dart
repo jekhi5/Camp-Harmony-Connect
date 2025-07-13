@@ -241,7 +241,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        'Status: ${isCheckedIn ? 'Checked In' : 'Checked Out'}',
+                        'Status: ${isCheckedIn ? 'On camp grounds' : 'Not on camp grounds'}',
                         style: Theme.of(context)
                             .textTheme
                             .titleMedium!
@@ -388,7 +388,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                 children: [
                   CupertinoListTile(
                     title: Text(
-                      isCheckedIn ? 'Checked In' : 'Checked Out',
+                      isCheckedIn ? 'On camp grounds' : 'Not on camp grounds',
                       style: TextStyle(
                         color: isCheckedIn
                             ? CupertinoColors.activeGreen

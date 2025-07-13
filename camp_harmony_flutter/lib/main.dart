@@ -84,10 +84,9 @@ Future<void> main() async {
       ],
       supportedLocales: [Locale('en')],
       material: (_, __) => MaterialAppData(
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          scaffoldBackgroundColor: Colors.transparent,
-        ),
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
+        themeMode: ThemeMode.light,
       ),
       cupertino: (_, __) => CupertinoAppData(
         theme: const CupertinoThemeData(
@@ -100,6 +99,7 @@ Future<void> main() async {
             ),
             textStyle: TextStyle(
               fontSize: 17,
+              color: CupertinoColors.label,
             ),
           ),
         ),

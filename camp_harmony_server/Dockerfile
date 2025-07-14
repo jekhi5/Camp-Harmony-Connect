@@ -3,6 +3,9 @@ FROM dart:3.5.0 AS build
 WORKDIR /app
 COPY . .
 
+# Install serverpod_cli globally
+RUN dart pub global activate serverpod_cli
+
 # Install dependencies and compile the server executable
 RUN dart pub get
 RUN dart compile exe bin/main.dart -o bin/server

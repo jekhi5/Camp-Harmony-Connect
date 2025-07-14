@@ -22,10 +22,10 @@ RUN dart compile exe bin/main.dart -o bin/server
 FROM alpine:latest
 
 RUN apk add --no-cache openssl ca-certificates && \
-    echo "@community http://dl-cdn.alpinelinux.org/alpine/v$(cat /etc/alpine-release | cut -d'.' -f1-2)/community" >> /etc/apk/repositories && \
+    echo "@testing http://dl-cdn.alpinelinux.org/alpine/v$(cat /etc/alpine-release | cut -d'.' -f1-2)/edge/testing" >> /etc/apk/repositories && \
     apk update
 
-RUN apk add --no-cache dart
+RUN apk add --no-cache dart=3.8.1-r0
 ENV PATH="/usr/bin:${PATH}"
 
 # TODO: REMOVE THIS DEBUGGING CODE

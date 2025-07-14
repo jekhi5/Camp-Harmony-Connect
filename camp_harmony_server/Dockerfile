@@ -39,13 +39,12 @@ ENV role=monolith
 
 WORKDIR /app
 
-COPY --from=build /app/camp_harmony_server/bin/server ./server
-
 # Copy runtime dependencies
 COPY --from=build /runtime/ /
 
 # Copy compiled server executable
 COPY --from=build /app/camp_harmony_server/bin/server server
+COPY --from=build /app/camp_harmony_server/bin/main.dart bin/main.dart
 
 # Copy configuration files and resources
 COPY --from=build /app/camp_harmony_server/config/ config/

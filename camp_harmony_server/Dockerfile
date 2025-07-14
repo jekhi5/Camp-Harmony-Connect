@@ -45,7 +45,7 @@ COPY --from=build /app/camp_harmony_server/web/ web/
 COPY --from=build /app/camp_harmony_server/migrations/ migrations/
 
 # This file is required to enable the endpoint log filter in Insights.
-COPY --from=build /app/lib/src/generated/protocol.yaml lib/src/generated/protocol.yaml
+COPY --from=build /app/camp_harmony_server/lib/src/generated/protocol.yaml lib/src/generated/protocol.yaml
 
 # Expose ports
 EXPOSE 8080

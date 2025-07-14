@@ -25,7 +25,7 @@ RUN apk add --no-cache openssl ca-certificates && \
     echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
     apk update
 
-RUN apk add --no-cache dart=3.8.1-r0
+RUN apk add --no-cache dart@testing
 ENV PATH="/usr/bin:${PATH}"
 
 # TODO: REMOVE THIS DEBUGGING CODE

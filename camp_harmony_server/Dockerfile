@@ -23,7 +23,7 @@ FROM alpine:latest
 
 RUN apk add --no-cache openssl ca-certificates
 
-RUN apk add --no-cache dart=3.5.0 # Replace 3.5.0 with your exact Dart version if necessary
+RUN apk add --no-cache dart=3.5.0
 ENV PATH="/usr/bin:${PATH}"
 
 # TODO: REMOVE THIS DEBUGGING CODE

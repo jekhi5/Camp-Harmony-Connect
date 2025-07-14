@@ -22,7 +22,7 @@ RUN dart compile exe bin/main.dart -o bin/server
 FROM alpine:latest
 
 RUN apk add --no-cache openssl ca-certificates && \
-    echo "@testing http://dl-cdn.alpinelinux.org/alpine/v$(cat /etc/alpine-release | cut -d'.' -f1-2)/testing" >> /etc/apk/repositories && \
+    echo "@community http://dl-cdn.alpinelinux.org/alpine/v$(cat /etc/alpine-release | cut -d'.' -f1-2)/community" >> /etc/apk/repositories && \
     apk update
 
 RUN apk add --no-cache dart

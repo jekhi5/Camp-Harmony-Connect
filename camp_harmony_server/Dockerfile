@@ -21,16 +21,6 @@ RUN dart compile exe bin/main.dart -o bin/server
 # Final stage
 FROM alpine:latest
 
-RUN apk add --no-cache openssl ca-certificates && \
-    echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
-    apk update
-
-RUN apk add --no-cache dart@testing
-ENV PATH="/usr/bin:${PATH}"
-
-# TODO: REMOVE THIS DEBUGGING CODE
-RUN which dart && ls -l $(which dart) 
-
 # Environment variables
 ENV runmode=production
 ENV serverid=default
@@ -44,7 +34,6 @@ COPY --from=build /runtime/ /
 
 # Copy compiled server executable
 COPY --from=build /app/camp_harmony_server/bin/server server
-COPY --from=build /app/camp_harmony_server/bin/main.dart bin/main.dart
 
 # Copy configuration files and resources
 COPY --from=build /app/camp_harmony_server/config/ config/
@@ -60,4 +49,4 @@ EXPOSE 8081
 EXPOSE 8082
 
 # Define the entrypoint command
-ENTRYPOINT ./server --mode=$runmode --server-id=$serverid --logging=$logging --role=$role
+ENTRYPOINT ./server --mode=$runmode --server-id=$serverid --logging=$logging --role=$role --apply-migrations

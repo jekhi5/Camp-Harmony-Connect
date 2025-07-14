@@ -23,7 +23,7 @@ FROM alpine:latest
 
 RUN apk add --no-cache openssl ca-certificates
 
-RUN apk add --no-cache dart=3.5.0
+RUN apk add --no-cache dart=3.8.1-r0
 ENV PATH="/usr/bin:${PATH}"
 
 # TODO: REMOVE THIS DEBUGGING CODE

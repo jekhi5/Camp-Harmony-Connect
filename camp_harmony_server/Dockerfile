@@ -1,5 +1,8 @@
 # Build stage
 FROM dart:3.5.0 AS build
+RUN git clone --branch stable https://github.com/flutter/flutter.git /flutter \
+    && /flutter/bin/flutter --version
+ENV PATH="/flutter/bin:/flutter/bin/cache/dart-sdk/bin:${PATH}"
 WORKDIR /app
 COPY . .
 

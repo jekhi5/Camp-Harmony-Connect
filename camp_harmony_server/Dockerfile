@@ -34,7 +34,7 @@ WORKDIR /app
 COPY --from=build /app/camp_harmony_server/bin/server ./server
 
 # Copy runtime dependencies
-COPY --from=build /app/camp_harmony_server/runtime/ /
+COPY --from=build /runtime/ /
 
 # Copy compiled server executable
 COPY --from=build /app/camp_harmony_server/bin/server server

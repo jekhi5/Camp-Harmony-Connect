@@ -269,3 +269,6 @@ $RECYCLE.BIN/
 
 # TFS 2012 Local Workspace
 $tf/
+
+
+*.env

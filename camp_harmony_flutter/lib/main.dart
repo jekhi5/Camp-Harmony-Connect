@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // used to pass messages from event handler to the UI
 final _messageStreamController = BehaviorSubject<RemoteMessage>();
@@ -25,6 +26,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 Future<void> main() async {
+  await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     name: "Camp_Harmony_App",

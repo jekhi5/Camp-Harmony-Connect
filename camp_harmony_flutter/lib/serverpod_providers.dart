@@ -1,12 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
 import 'package:camp_harmony_client/camp_harmony_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final clientProvider = Provider<Client>((ref) {
-  const serverUrlFromEnv = String.fromEnvironment('SERVER_URL');
-  final serverUrl =
-      serverUrlFromEnv.isEmpty ? 'http://10.0.2.2:8080/' : serverUrlFromEnv;
+  final String serverUrlFromEnv = dotenv.get('SERVER_URL');
+  final String serverUrl = serverUrlFromEnv.isNotEmpty
+      ? serverUrlFromEnv
+      : throw Exception(
+          'SERVER_URL environment variable is not set. Please set it in your environment.');
+
   return Client(serverUrl)..connectivityMonitor = FlutterConnectivityMonitor();
 });
 

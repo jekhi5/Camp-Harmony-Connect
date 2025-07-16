@@ -47,6 +47,7 @@ dependencies:
   firebase_ui_oauth_google: ^1.2.14
   serverpod_flutter: ^2.9.1
   flutter_riverpod: ^2.6.1
+  flutter_dotenv: ^5.2.1
   flutter_localizations:
     sdk: flutter
   intl: 
@@ -76,6 +77,7 @@ flutter:
   assets:
     - images/CampHarmonyLogo.jpg
     - images/CampRamahOjaiMap.jpg
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

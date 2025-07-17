@@ -18,7 +18,7 @@ class CampMap extends StatelessWidget {
           minScale: 0.5,
           maxScale: 4.0,
           child: const Image(
-            image: AssetImage('images/CampRamahOjaiMap.jpg'),
+            image: AssetImage('images/CampRamahOjaiMap.png'),
           ),
         ));
   }

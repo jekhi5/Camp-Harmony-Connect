@@ -3,6 +3,7 @@ import 'package:camp_harmony_app/serverpod_providers.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AuthGate extends ConsumerWidget {
@@ -21,7 +22,7 @@ class AuthGate extends ConsumerWidget {
           return SignInScreen(
             providers: [
               EmailAuthProvider(),
-              GoogleProvider(clientId: ""),
+              GoogleProvider(clientId: dotenv.get('GOOGLE_OAUTH_CLIENT_ID')),
             ],
             headerBuilder: (context, constraints, shrinkOffset) {
               return const Padding(

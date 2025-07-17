@@ -2,6 +2,7 @@ import 'package:camp_harmony_app/components/onboarding_screen.dart';
 import 'package:camp_harmony_app/serverpod_providers.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +15,14 @@ class AuthGate extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final firebaseAuthStream = ref.watch(firebaseAuthChangesProvider);
+    final googleOAuthClientId = dotenv.maybeGet('GOOGLE_OAUTH_CLIENT_ID');
+
+    if (googleOAuthClientId == null) {
+      if (kDebugMode) {
+        print(
+            'Warning: GOOGLE_OAUTH_CLIENT_ID not set in .env file, Google Sign-In will not work');
+      }
+    }
 
     return firebaseAuthStream.when(
       data: (firebaseUser) {
@@ -22,7 +31,7 @@ class AuthGate extends ConsumerWidget {
           return SignInScreen(
             providers: [
               EmailAuthProvider(),
-              GoogleProvider(clientId: dotenv.get('GOOGLE_OAUTH_CLIENT_ID')),
+              GoogleProvider(clientId: googleOAuthClientId ?? ''),
             ],
             headerBuilder: (context, constraints, shrinkOffset) {
               return const Padding(

@@ -43,6 +43,7 @@ dependencies:
   rxdart: ^0.28.0
   firebase_auth: ^5.6.0
   firebase_ui_auth: ^1.10.0
+  google_sign_in: ^6.3.0
   firebase_ui_oauth_google: ^1.2.14
   serverpod_flutter: ^2.9.1
   flutter_riverpod: ^2.6.1
@@ -51,7 +52,6 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl:
-  google_sign_in: ^6.3.0
 
 dev_dependencies:
   flutter_test:

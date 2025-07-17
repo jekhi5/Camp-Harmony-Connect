@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:camp_harmony_app/utilities.dart';
 import 'package:camp_harmony_client/camp_harmony_client.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/cupertino.dart';
@@ -44,13 +45,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     setState(() => _editing = false);
   }
 
-  String? _phoneValidator(String? v) {
-    if (v == null || v.trim().isEmpty) return 'Enter a phone number';
-    final pat = r'^(\+\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$';
-    if (!RegExp(pat).hasMatch(v)) return 'Invalid US phone number';
-    return null;
-  }
-
   Future<void> _saveProfile(Client client, String uid) async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -80,10 +74,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     } finally {
       setState(() => _saving = false);
     }
-  }
-
-  String? _notEmptyValidator(String? v) {
-    return (v == null || v.trim().isEmpty) ? 'Cannot be empty' : null;
   }
 
   @override
@@ -211,57 +201,32 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Text('First Name',
-                                  style:
-                                      Theme.of(context).textTheme.labelLarge),
-                              const SizedBox(height: 4),
-                              _editing
-                                  ? TextFormField(
-                                      controller: _firstNameCtrl,
-                                      decoration: const InputDecoration(
-                                        border: OutlineInputBorder(),
-                                      ),
-                                      validator: _notEmptyValidator,
-                                    )
-                                  : Text(user.firstName,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium),
+                              ..._buildMaterialFormField(
+                                  context,
+                                  _editing,
+                                  user.firstName,
+                                  'First Name',
+                                  _firstNameCtrl,
+                                  TextInputType.text,
+                                  Utilities.nameValidator),
                               const SizedBox(height: 12),
-                              Text('Last Name',
-                                  style:
-                                      Theme.of(context).textTheme.labelLarge),
-                              const SizedBox(height: 4),
-                              _editing
-                                  ? TextFormField(
-                                      controller: _lastNameCtrl,
-                                      decoration: const InputDecoration(
-                                        border: OutlineInputBorder(),
-                                      ),
-                                      validator: _notEmptyValidator,
-                                    )
-                                  : Text(user.lastName,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium),
+                              ..._buildMaterialFormField(
+                                  context,
+                                  _editing,
+                                  user.lastName,
+                                  'Last Name',
+                                  _lastNameCtrl,
+                                  TextInputType.text,
+                                  Utilities.nameValidator),
                               const SizedBox(height: 12),
-                              Text('Phone Number',
-                                  style:
-                                      Theme.of(context).textTheme.labelLarge),
-                              const SizedBox(height: 4),
-                              _editing
-                                  ? TextFormField(
-                                      controller: _phoneCtrl,
-                                      keyboardType: TextInputType.phone,
-                                      decoration: const InputDecoration(
-                                        border: OutlineInputBorder(),
-                                      ),
-                                      validator: _phoneValidator,
-                                    )
-                                  : Text(user.phoneNumber,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium),
+                              ..._buildMaterialFormField(
+                                  context,
+                                  _editing,
+                                  user.phoneNumber,
+                                  'Phone Number',
+                                  _phoneCtrl,
+                                  TextInputType.phone,
+                                  Utilities.phoneValidator),
                               const SizedBox(height: 12),
                               Text('Email',
                                   style:
@@ -310,10 +275,38 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
-  CupertinoListTile _buildCupertinoListTile(BuildContext context, bool editing,
-      String userValue, String fieldTitle, TextEditingController controller,
-      [TextInputType keyboardType = TextInputType.text,
-      String? Function(String?)? validator]) {
+  List<Widget> _buildMaterialFormField(
+      BuildContext context,
+      bool editing,
+      String userValue,
+      String fieldTitle,
+      TextEditingController controller,
+      TextInputType keyboardType,
+      String? Function(String?)? validator) {
+    return [
+      Text(fieldTitle, style: Theme.of(context).textTheme.labelLarge),
+      const SizedBox(height: 4),
+      _editing
+          ? TextFormField(
+              controller: controller,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: keyboardType,
+              validator: validator,
+            )
+          : Text(userValue, style: Theme.of(context).textTheme.bodyMedium)
+    ];
+  }
+
+  CupertinoListTile _buildCupertinoListTile(
+      BuildContext context,
+      bool editing,
+      String userValue,
+      String fieldTitle,
+      TextEditingController controller,
+      TextInputType keyboardType,
+      String? Function(String?)? validator) {
     final labelColor = CupertinoColors.label.resolveFrom(context);
     const double kWidth = 180;
 
@@ -395,10 +388,22 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           style: TextStyle(color: labelColor),
                         ),
                         children: [
-                          _buildCupertinoListTile(context, _editing,
-                              user.firstName, 'First Name', _firstNameCtrl),
-                          _buildCupertinoListTile(context, _editing,
-                              user.lastName, 'Last Name', _lastNameCtrl),
+                          _buildCupertinoListTile(
+                              context,
+                              _editing,
+                              user.firstName,
+                              'First Name',
+                              _firstNameCtrl,
+                              TextInputType.text,
+                              Utilities.nameValidator),
+                          _buildCupertinoListTile(
+                              context,
+                              _editing,
+                              user.lastName,
+                              'Last Name',
+                              _lastNameCtrl,
+                              TextInputType.text,
+                              Utilities.nameValidator),
                           _buildCupertinoListTile(
                               context,
                               _editing,
@@ -406,7 +411,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                               'Phone Number',
                               _phoneCtrl,
                               TextInputType.phone,
-                              _phoneValidator),
+                              Utilities.phoneValidator),
                           CupertinoListTile(
                             title: Text(
                               'Email',

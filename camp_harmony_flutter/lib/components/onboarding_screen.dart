@@ -10,20 +10,45 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camp_harmony_client/camp_harmony_client.dart';
 import 'check_in_page.dart';
 
-class OnboardingScreen extends ConsumerWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
-  static final TextEditingController _firstNameController =
-      TextEditingController();
-  static final TextEditingController _lastNameController =
-      TextEditingController();
-  static final TextEditingController _phoneNumberController =
-      TextEditingController();
-  static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _phoneNumberController.dispose();
+    super.dispose();
+  }
 
   void _submitOnboarding(WidgetRef ref) async {
     if (!_formKey.currentState!.validate()) return;
 
     final firebaseUser = FirebaseAuth.instance.currentUser;
+
+    if (firebaseUser == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'Authentication session expired. Please sign in again.')),
+        );
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (ctx) => AuthGate(destinationWidget: CheckInPage())));
+      }
+      return;
+    }
+
     final client = ref.read(clientProvider);
 
     final newUser = ServerpodUser(
@@ -221,7 +246,7 @@ class OnboardingScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final firebaseUser = FirebaseAuth.instance.currentUser;
 
     if (firebaseUser == null) {

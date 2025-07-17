@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:camp_harmony_app/utilities.dart';
 import 'package:camp_harmony_client/camp_harmony_client.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/cupertino.dart';
@@ -138,7 +139,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
 
     return authState.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Auth error: $e')),
+      error: (e, _) => Utilities.errorLoadingUserWidget(e, ref, null),
       data: (fbUser) {
         if (fbUser == null) return _buildSignInPrompt();
 
@@ -148,7 +149,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
 
         return profile.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Profile error: $e')),
+          error: (e, _) => Utilities.errorLoadingUserWidget(e, ref, uid),
           data: (user) {
             if (user == null) return _buildNoProfile();
 

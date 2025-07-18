@@ -1,5 +1,4 @@
 import 'package:camp_harmony_app/components/onboarding_screen.dart';
-import 'package:camp_harmony_app/components/sign_in_page.dart';
 import 'package:camp_harmony_app/serverpod_providers.dart';
 import 'package:camp_harmony_app/utilities.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';

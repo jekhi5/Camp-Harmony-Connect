@@ -94,7 +94,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final auth = ref.watch(firebaseAuthChangesProvider);
     return auth.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Auth error: $e')),
+      error: (e, _) => Utilities.errorLoadingUserWidget(e, ref, null),
       data: (fbUser) {
         if (fbUser == null) {
           return Center(
@@ -111,7 +111,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
         return profile.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Error loading profile: $e')),
+          error: (e, _) => Utilities.errorLoadingUserWidget(e, ref, uid),
           data: (user) {
             if (user == null) {
               return Center(

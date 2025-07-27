@@ -52,7 +52,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final client = ref.read(clientProvider);
 
     final newUser = ServerpodUser(
-      firebaseUID: firebaseUser!.uid,
+      firebaseUID: firebaseUser.uid,
       firstName: _firstNameController.text,
       lastName: _lastNameController.text,
       email: firebaseUser.email ?? '',

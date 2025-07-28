@@ -10,7 +10,6 @@ class CheckInEndpoint extends Endpoint {
     ServerpodUser? user = await ServerpodUser.db
         .findFirstRow(session, where: (u) => u.firebaseUID.equals(uid));
     if (user == null) {
-      print("User not found for check-in: $uid");
       return false;
     }
     user.isCheckedIn = true;

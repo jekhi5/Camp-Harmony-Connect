@@ -21,3 +21,4 @@ config/firebase_service_account_key.json
 /test/integration/test_tools/serverpod_test_tools.dart
 
 .env
+.flutter-plugins-dependencies

@@ -92,41 +92,35 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     });
 
     final auth = ref.watch(firebaseAuthChangesProvider);
+    final client = ref.watch(clientProvider);
+
     return auth.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Utilities.errorLoadingUserWidget(e, ref, null),
+      error: (e, _) =>
+          Utilities.errorLoadingUserWidget(e, ref, client, null, null),
       data: (fbUser) {
         if (fbUser == null) {
           return Center(
-            child: ElevatedButton(
-              onPressed: () => firebase_auth.FirebaseAuth.instance.signOut(),
-              child: const Text('Log In'),
-            ),
+            child: Utilities.signOutButton(ref, client, null),
           );
         }
 
-        final uid = fbUser.uid;
-        final client = ref.watch(clientProvider);
-        final profile = ref.watch(userProfileProvider(uid));
+        final fbUID = fbUser.uid;
+        final profile = ref.watch(userProfileProvider(fbUID));
 
         return profile.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Utilities.errorLoadingUserWidget(e, ref, uid),
+          error: (e, _) =>
+              Utilities.errorLoadingUserWidget(e, ref, client, fbUID, null),
           data: (user) {
             if (user == null) {
-              return Center(
-                child: ElevatedButton(
-                  onPressed: () =>
-                      firebase_auth.FirebaseAuth.instance.signOut(),
-                  child: const Text('Log Out'),
-                ),
-              );
+              return Center(child: Utilities.signOutButton(ref, client, null));
             }
 
             final isIOS = Platform.isIOS;
             return isIOS
-                ? _buildCupertinoPage(context, user, client, uid)
-                : _buildMaterialPage(context, user, client, uid);
+                ? _buildCupertinoPage(context, user, client, fbUID)
+                : _buildMaterialPage(context, user, client, fbUID);
           },
         );
       },

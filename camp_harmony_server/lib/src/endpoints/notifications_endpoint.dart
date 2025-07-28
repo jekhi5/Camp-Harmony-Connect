@@ -7,7 +7,7 @@ import '../services/fcm_service.dart';
 // Send notifications
 class NotificationsEndpoint extends Endpoint {
   final _fcm = FcmService();
-  final UserType REQUIRED_ROLE_PERMISSIONS = UserType.admin;
+  final UserType requiredRolePermissions = UserType.admin;
 
   Future<String> sendNotification(
     Session session,
@@ -32,7 +32,7 @@ class NotificationsEndpoint extends Endpoint {
         where: (u) => u.firebaseUID.equals(sendingfbUID));
 
     if (sendingUser == null ||
-        sendingUser.role.toJson() < REQUIRED_ROLE_PERMISSIONS.toJson()) {
+        sendingUser.role.toJson() < requiredRolePermissions.toJson()) {
       return "User does not have required permissions to send notifications";
     }
 

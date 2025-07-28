@@ -10,4 +10,4 @@ fields:
   phoneNumber: String
   registrationDate: DateTime
   isCheckedIn: bool
-  roles: List<String>
+  role: UserType

@@ -1,0 +1,86 @@
+{
+  "actions": [
+    {
+      "type": "deleteTable",
+      "deleteTable": "fcm_tokens"
+    },
+    {
+      "type": "createTable",
+      "createTable": {
+        "name": "fcm_tokens",
+        "dartName": "FCMToken",
+        "module": "camp_harmony",
+        "schema": "public",
+        "columns": [
+          {
+            "name": "id",
+            "columnType": 6,
+            "isNullable": false,
+            "columnDefault": "nextval('fcm_tokens_id_seq'::regclass)",
+            "dartType": "int?"
+          },
+          {
+            "name": "token",
+            "columnType": 0,
+            "isNullable": false,
+            "dartType": "String"
+          },
+          {
+            "name": "userId",
+            "columnType": 6,
+            "isNullable": false,
+            "dartType": "int"
+          },
+          {
+            "name": "lastUpdate",
+            "columnType": 4,
+            "isNullable": false,
+            "dartType": "DateTime"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "constraintName": "fcm_tokens_fk_0",
+            "columns": [
+              "userId"
+            ],
+            "referenceTable": "users",
+            "referenceTableSchema": "public",
+            "referenceColumns": [
+              "id"
+            ],
+            "onUpdate": 3,
+            "onDelete": 3
+          }
+        ],
+        "indexes": [
+          {
+            "indexName": "fcm_tokens_pkey",
+            "elements": [
+              {
+                "type": 0,
+                "definition": "id"
+              }
+            ],
+            "type": "btree",
+            "isUnique": true,
+            "isPrimary": true
+          }
+        ],
+        "managed": true
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "type": "tableDropped",
+      "message": "One or more columns are added to table \"fcm_tokens\" which cannot be added in a table migration. The complete table will be deleted and recreated.",
+      "table": "fcm_tokens",
+      "columns": [
+        "lastUpdate"
+      ],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}

@@ -69,76 +69,118 @@ class _NotificationSenderState extends ConsumerState<NotificationSender> {
     final client = ref.watch(clientProvider);
 
     final content = SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Send Notification',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque, // make sure taps “through” work
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Send Notification',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        AdaptiveTextField(
+                          label: 'Title',
+                          controller: _titleController,
+                          maxLines: 2,
+                          maxLength: 50,
+                          validator: (s) {
+                            if (s == null || s.isEmpty) return 'Required';
+                            if (s.length < 10) {
+                              return 'Must be at least 10 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        AdaptiveTextField(
+                          label: 'Message',
+                          controller: _messageController,
+                          maxLines: 6,
+                          maxLength: 150,
+                          validator: (s) {
+                            if (s == null || s.isEmpty) return 'Required';
+                            if (s.length < 10) {
+                              return 'Must be at least 10 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 10, 0, 0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Only send to "checked-in" users:',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
+                                      color: _isCupertino
+                                          ? CupertinoColors.label
+                                              .resolveFrom(context)
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                    ),
+                              ),
+                              AdaptiveSwitch(
+                                  onChanged: (val) {
+                                    setState(() {
+                                      _onlySendToCheckedIn = val ?? false;
+                                    });
+                                  },
+                                  value: _onlySendToCheckedIn)
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        AdaptiveButton(
+                          text: 'Send',
+                          onPressed: () => _onSend(client),
+                        ),
+                        if (_statusMessage.isNotEmpty) Text(_statusMessage)
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-              AdaptiveTextField(
-                label: 'Title',
-                controller: _titleController,
-                maxLines: 2,
-                maxLength: 50,
-                validator: (s) {
-                  if (s == null || s.isEmpty) return 'Required';
-                  if (s.length < 10) return 'Must be at least 10 characters';
-                  return null;
-                },
-              ),
-              AdaptiveTextField(
-                label: 'Message',
-                controller: _messageController,
-                maxLines: 6,
-                maxLength: 150,
-                validator: (s) {
-                  if (s == null || s.isEmpty) return 'Required';
-                  if (s.length < 10) return 'Must be at least 10 characters';
-                  return null;
-                },
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 10, 0, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Only send to "checked-in" users:',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    AdaptiveCheckBox(
-                      onChanged: (val) {
-                        setState(() {
-                          _onlySendToCheckedIn = val ?? false;
-                        });
-                      },
-                      value: _onlySendToCheckedIn,
-                      title: 'Only send to checked-in users',
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16.0),
-              AdaptiveButton(
-                text: 'Send',
-                onPressed: () => _onSend(client),
-              ),
-              if (_statusMessage.isNotEmpty) Text(_statusMessage)
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
+
+    // final content = SafeArea(
+    //   child: Padding(
+    //     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+    //     child: Form(
+    //       key: _formKey,
+    //       child: Column(
+    //         crossAxisAlignment: CrossAxisAlignment.stretch,
+    //         children: [],
+    //       ),
+    //     ),
+    //   ),
+    // );
 
     if (_isCupertino) {
       return CupertinoPageScaffold(
@@ -196,6 +238,7 @@ class AdaptiveTextField extends StatelessWidget {
                   border: Border.all(color: CupertinoColors.systemGrey),
                   borderRadius: BorderRadius.circular(8),
                 ),
+                textInputAction: TextInputAction.done,
                 validator: validator,
                 inputFormatters: [
                   if (maxLength != null)
@@ -290,16 +333,14 @@ class AdaptiveButton extends StatelessWidget {
   }
 }
 
-class AdaptiveCheckBox extends StatelessWidget {
+class AdaptiveSwitch extends StatelessWidget {
   final ValueChanged<bool?> onChanged;
   final bool value;
-  final String title;
 
-  const AdaptiveCheckBox({
+  const AdaptiveSwitch({
     super.key,
     required this.onChanged,
     required this.value,
-    required this.title,
   });
 
   bool get _isCupertino =>
@@ -309,13 +350,12 @@ class AdaptiveCheckBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (_isCupertino) {
-      return CupertinoCheckbox(
-        semanticLabel: title,
+      return CupertinoSwitch(
         value: value,
         onChanged: onChanged,
       );
     } else {
-      return Checkbox(
+      return Switch(
         value: value,
         onChanged: onChanged,
       );

@@ -8,9 +8,9 @@ environment:
 
 dependencies:
   serverpod: 2.9.1
-  firebase_verify_token: ^0.0.7
   googleapis_auth: ^2.0.0
   http: ^1.4.0
+  firebase_verify_token_dart: ^2.1.1
 
 
 dev_dependencies:

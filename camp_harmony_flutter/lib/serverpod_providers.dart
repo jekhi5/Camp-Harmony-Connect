@@ -13,11 +13,10 @@ final clientProvider = Provider<Client>((ref) {
     serverUrlFromEnv = Platform.isIOS
         ? dotenv.get('IOS_SERVER_URL')
         : dotenv.get('ANDROID_SERVER_URL');
-  } else if (mode == 'production') {
-    serverUrlFromEnv = dotenv.get('PRODUCTION_SERVER_URL');
   } else {
-    throw Exception("Unknown environment mode: $mode");
+    serverUrlFromEnv = 'https://camp-harmony-app-server.onrender.com/';
   }
+
   final String serverUrl = serverUrlFromEnv.isNotEmpty
       ? serverUrlFromEnv
       : throw Exception(

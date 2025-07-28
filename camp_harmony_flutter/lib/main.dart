@@ -92,7 +92,7 @@ Future<void> main() async {
       material: (_, __) => MaterialAppData(
         theme: ThemeData.light(),
         darkTheme: ThemeData.dark(),
-        themeMode: ThemeMode.light,
+        themeMode: ThemeMode.system,
       ),
       cupertino: (_, __) => CupertinoAppData(
         theme: const CupertinoThemeData(

@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:camp_harmony_app/components/onboarding_screen.dart';
 import 'package:camp_harmony_app/serverpod_providers.dart';
 import 'package:camp_harmony_app/utilities.dart';
+import 'package:camp_harmony_client/camp_harmony_client.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flutter/foundation.dart';
@@ -10,10 +14,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AuthGate extends ConsumerWidget {
   final Widget destinationWidget;
-  final List<String>? requiredRoles;
+  final UserType requiredRole;
 
   const AuthGate(
-      {super.key, required this.destinationWidget, this.requiredRoles});
+      {super.key,
+      required this.destinationWidget,
+      this.requiredRole = UserType.user});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,13 +33,13 @@ class AuthGate extends ConsumerWidget {
       }
     }
 
+    final client = ref.watch(clientProvider);
+
     return firebaseAuthStream.when(
         data: (firebaseUser) {
           if (firebaseUser == null) {
             // Not logged in
-            return
-                // SignInPage();
-                SignInScreen(
+            return SignInScreen(
               providers: [
                 EmailAuthProvider(),
                 GoogleProvider(clientId: googleOAuthClientId ?? ''),
@@ -91,27 +97,25 @@ class AuthGate extends ConsumerWidget {
                   return OnboardingScreen();
                 }
 
-                if (requiredRoles != null) {
-                  final missing = requiredRoles!
-                      .where((r) => !user.roles.contains(r))
-                      .toList();
-                  if (missing.isNotEmpty) {
-                    return Scaffold(
-                      body: Center(
-                        child:
-                            Text('You\'re not authorized to view this page.'),
-                      ),
-                    );
-                  }
+                // The user types are indexed with the 'user' type being the lowest (0)
+                // and higher roles have increasing indecies
+                if (requiredRole.toJson() > user.role.toJson()) {
+                  return Scaffold(
+                    body: Center(
+                      child: Text('You\'re not authorized to view this page.'),
+                    ),
+                  );
                 }
+
+                _registerFCMToken(client, user.id);
 
                 return destinationWidget;
               },
               loading: () => const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               ),
-              error: (err, stack) =>
-                  Utilities.errorLoadingUserWidget(err, ref, firebaseUser.uid),
+              error: (err, stack) => Utilities.errorLoadingUserWidget(
+                  err, ref, client, firebaseUser.uid, null),
             );
           }
         },
@@ -119,6 +123,30 @@ class AuthGate extends ConsumerWidget {
               body: Center(child: CircularProgressIndicator()),
             ),
         error: (err, stack) =>
-            Utilities.errorLoadingUserWidget(err, ref, null));
+            Utilities.errorLoadingUserWidget(err, ref, client, null, null));
+  }
+
+  void _registerFCMToken(Client client, int? userId) async {
+    String? token;
+
+    try {
+      if (userId == null) {
+        throw Exception("UserID can't be null when registering an FCM token");
+      }
+
+      token = Platform.isIOS
+          ? await FirebaseMessaging.instance.getAPNSToken()
+          : await FirebaseMessaging.instance.getToken();
+
+      if (token == null) {
+        throw Exception("Token was null");
+      }
+
+      await client.notifications.registerToken(token, userId);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error registering token: $e');
+      }
+    }
   }
 }

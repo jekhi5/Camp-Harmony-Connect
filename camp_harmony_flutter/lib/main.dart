@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:camp_harmony_app/components/camp_harmony_app.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -52,7 +54,9 @@ Future<void> main() async {
   String? token;
 
   try {
-    token = await messaging.getToken();
+    token = Platform.isIOS
+        ? await messaging.getAPNSToken()
+        : await messaging.getToken();
   } catch (e) {
     if (kDebugMode) {
       print('Error retrieving token: $e');
@@ -96,9 +100,9 @@ Future<void> main() async {
           barBackgroundColor: CupertinoColors.systemGrey6,
           textTheme: CupertinoTextThemeData(
             navTitleTextStyle: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                fontFamily: '.SF Pro Text'),
             textStyle: TextStyle(
               fontSize: 17,
               color: CupertinoColors.label,

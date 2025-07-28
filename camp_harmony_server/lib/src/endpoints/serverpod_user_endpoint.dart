@@ -23,7 +23,7 @@ class ServerpodUserEndpoint extends Endpoint {
       phoneNumber: user.phoneNumber,
       registrationDate: DateTime.now(),
       isCheckedIn: false,
-      roles: ['user'],
+      role: UserType.user,
     );
 
     final ServerpodUser newUserWithId =

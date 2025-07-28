@@ -1,0 +1,15 @@
+### The different types a user can be
+### Currently the user types supported are:
+### - user
+### - admin
+enum: UserType
+serialized: byIndex
+default: user
+values:
+  ### These users are sorted with increasing order of permissions
+  ### DO NOT CHANGE THIS ORDER WITHOUT UNDERSTANDING THIS
+  ### For example, if "admin" is placed before "user", then "user" will, by implementation elswhere,
+  ### have a higher scope of permissions than "admin"
+  ### Be forewarned...
+  - user
+  - admin

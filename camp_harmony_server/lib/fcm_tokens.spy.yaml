@@ -1,0 +1,8 @@
+### This file defines the FCM Token holding model for the Camp Harmony application.
+### It includes fields for the associated user id, their device token, and last use date.
+class: FCMToken
+table: fcm_tokens
+fields:
+  token: String
+  userId: int, relation(parent=users)
+  lastUpdate: DateTime

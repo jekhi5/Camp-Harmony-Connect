@@ -1,5 +1,10 @@
+import 'dart:io';
+
 import 'package:camp_harmony_app/serverpod_providers.dart';
+import 'package:camp_harmony_client/camp_harmony_client.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -21,7 +26,32 @@ class Utilities {
     }
   }
 
-  static Widget errorLoadingUserWidget(Object err, WidgetRef ref, String? uid) {
+  static Widget signOutButton(WidgetRef ref, Client client, int? userId) {
+    void signOutLogic() async {
+      final token = Platform.isIOS
+          ? await FirebaseMessaging.instance.getAPNSToken()
+          : await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        await client.notifications.deregisterToken(token, userId);
+      }
+      await FirebaseAuth.instance.signOut().whenComplete(() {
+        ref.invalidate(userProfileProvider);
+      });
+    }
+
+    return Platform.isIOS
+        ? CupertinoButton(
+            onPressed: signOutLogic,
+            child: const Text('Sign Out'),
+          )
+        : ElevatedButton(
+            onPressed: signOutLogic,
+            child: const Text('Sign Out'),
+          );
+  }
+
+  static Widget errorLoadingUserWidget(
+      Object err, WidgetRef ref, Client client, String? fbUID, int? userId) {
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -31,18 +61,13 @@ class Utilities {
           ElevatedButton(
             onPressed: () {
               // Retry loading user data
-              if (uid != null) ref.invalidate(userProfileProvider(uid));
+              if (fbUID != null) ref.invalidate(userProfileProvider(fbUID));
               ref.invalidate(firebaseAuthChangesProvider);
             },
             child: const Text('Retry'),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-            },
-            child: const Text('Sign Out'),
-          ),
+          signOutButton(ref, client, userId)
         ],
       ),
     );

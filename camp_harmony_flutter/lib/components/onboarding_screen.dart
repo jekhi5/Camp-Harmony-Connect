@@ -59,7 +59,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       phoneNumber: _phoneNumberController.text,
       registrationDate: DateTime.now(),
       isCheckedIn: false,
-      roles: ['user'],
+      role: UserType.user,
     );
 
     await client.serverpodUser.addUser(newUser);
@@ -144,6 +144,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(10),
+                    // No need for the utility sign out button because there is not user info or device data stored
                     child: CupertinoButton(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -226,6 +227,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
               Padding(
                   padding: const EdgeInsets.all(10),
+                  // No need for the utility sign out button because there is not user info or device data stored
                   child: ElevatedButton.icon(
                       icon: Icon(
                           Platform.isAndroid

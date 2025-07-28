@@ -136,26 +136,28 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
     });
 
     final authState = ref.watch(firebaseAuthChangesProvider);
+    final client = ref.watch(clientProvider);
 
     return authState.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Utilities.errorLoadingUserWidget(e, ref, null),
+      error: (e, _) =>
+          Utilities.errorLoadingUserWidget(e, ref, client, null, null),
       data: (fbUser) {
-        if (fbUser == null) return _buildSignInPrompt();
+        if (fbUser == null) return Utilities.signOutButton(ref, client, null);
 
-        final uid = fbUser.uid;
-        final client = ref.watch(clientProvider);
-        final profile = ref.watch(userProfileProvider(uid));
+        final fbUID = fbUser.uid;
+        final profile = ref.watch(userProfileProvider(fbUID));
 
         return profile.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Utilities.errorLoadingUserWidget(e, ref, uid),
+          error: (e, _) =>
+              Utilities.errorLoadingUserWidget(e, ref, client, fbUID, null),
           data: (user) {
-            if (user == null) return _buildNoProfile();
+            if (user == null) return Utilities.signOutButton(ref, client, null);
 
             return Platform.isIOS
                 ? _buildCupertinoPage(context, user, client)
-                : _buildMaterialPage(context, user, client, uid);
+                : _buildMaterialPage(context, user, client, fbUID);
           },
         );
       },
@@ -280,16 +282,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                   ),
 
                 const SizedBox(height: 24),
-                TextButton.icon(
-                  onPressed: () =>
-                      firebase_auth.FirebaseAuth.instance.signOut(),
-                  icon: Icon(
-                    Platform.isAndroid
-                        ? Icons.logout
-                        : CupertinoIcons.arrow_right_circle,
-                  ),
-                  label: const Text('Sign Out'),
-                ),
+                Utilities.signOutButton(ref, client, user.id),
                 const SizedBox(height: 24),
               ],
             ),
@@ -428,32 +421,11 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
 
               // Sign-out
               const SizedBox(height: 24),
-              CupertinoButton(
-                onPressed: () => firebase_auth.FirebaseAuth.instance.signOut(),
-                child: const Text('Sign Out'),
-              ),
+              Utilities.signOutButton(ref, client, user.id),
               const SizedBox(height: 24),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildNoProfile() {
-    return Center(
-      child: ElevatedButton(
-        onPressed: () => firebase_auth.FirebaseAuth.instance.signOut(),
-        child: const Text('Log Out'),
-      ),
-    );
-  }
-
-  Widget _buildSignInPrompt() {
-    return Center(
-      child: ElevatedButton(
-        onPressed: () => firebase_auth.FirebaseAuth.instance.signOut(),
-        child: const Text('Log In'),
       ),
     );
   }

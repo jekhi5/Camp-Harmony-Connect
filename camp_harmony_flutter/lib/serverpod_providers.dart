@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
@@ -5,11 +7,21 @@ import 'package:camp_harmony_client/camp_harmony_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final clientProvider = Provider<Client>((ref) {
-  final String serverUrlFromEnv = dotenv.get('SERVER_URL');
+  final mode = dotenv.get('MODE');
+  String serverUrlFromEnv;
+  if (mode == 'development') {
+    serverUrlFromEnv = Platform.isIOS
+        ? dotenv.get('IOS_SERVER_URL')
+        : dotenv.get('ANDROID_SERVER_URL');
+  } else if (mode == 'production') {
+    serverUrlFromEnv = dotenv.get('PRODUCTION_SERVER_URL');
+  } else {
+    throw Exception("Unknown environment mode: $mode");
+  }
   final String serverUrl = serverUrlFromEnv.isNotEmpty
       ? serverUrlFromEnv
       : throw Exception(
-          'SERVER_URL environment variable is not set. Please set it in your environment.');
+          'Environment variable for server is not set. Please set it in your environment.');
 
   return Client(serverUrl)..connectivityMonitor = FlutterConnectivityMonitor();
 });

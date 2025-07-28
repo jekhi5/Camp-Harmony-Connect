@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:camp_harmony_server/src/generated/protocol.dart';
+import 'package:firebase_verify_token_dart/firebase_verify_token_dart.dart';
 import 'package:serverpod/serverpod.dart';
-import 'package:firebase_verify_token/firebase_verify_token.dart';
 import '../services/fcm_service.dart';
 
 // Send notifications
@@ -17,7 +17,7 @@ class NotificationsEndpoint extends Endpoint {
     bool onlyToCheckedInUsers,
   ) async {
     try {
-      FirebaseVerifyToken.projectId = 'camp-harmony';
+      FirebaseVerifyToken.projectIds = ['camp-harmony'];
       final isValid = await FirebaseVerifyToken.verify(authToken);
       if (!isValid) {
         return "User token is invalid. Try logging out and then logging back in";
@@ -26,7 +26,7 @@ class NotificationsEndpoint extends Endpoint {
       return "User ID token validation failed: ${e.toString()}";
     }
 
-    final sendingfbUID = FirebaseVerifyToken.getIdByToken(authToken);
+    final sendingfbUID = FirebaseVerifyToken.getUserID(authToken);
 
     final sendingUser = await ServerpodUser.db.findFirstRow(session,
         where: (u) => u.firebaseUID.equals(sendingfbUID));

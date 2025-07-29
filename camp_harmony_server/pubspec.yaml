@@ -11,6 +11,7 @@ dependencies:
   googleapis_auth: ^2.0.0
   http: ^1.4.0
   firebase_verify_token_dart: ^2.1.1
+  dotenv: ^4.2.0
 
 
 dev_dependencies:

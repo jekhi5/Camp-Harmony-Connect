@@ -25,13 +25,16 @@ class _CampHarmonyAppState extends ConsumerState<CampHarmonyApp> {
   void _getAdminStatus(Client client, String? fbUID) async {
     if (fbUID == null) return;
 
-    ServerpodUser? user = await client.serverpodUser.getUser(fbUID);
-
-    if (user != null) {
-      setState(() {
-        _isAdmin = user.role == UserType.admin;
-      });
-    }
+    final user = ref.watch(userProfileProvider(fbUID));
+    user.when(
+      data: (user) {
+        setState(() {
+          _isAdmin = user != null && user.role == UserType.admin;
+        });
+      },
+      loading: () => null,
+      error: (err, stack) => null,
+    );
   }
 
   @override

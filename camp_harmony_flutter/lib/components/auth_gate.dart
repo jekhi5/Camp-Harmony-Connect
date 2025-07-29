@@ -134,9 +134,7 @@ class AuthGate extends ConsumerWidget {
         throw Exception("UserID can't be null when registering an FCM token");
       }
 
-      token = Platform.isIOS
-          ? await FirebaseMessaging.instance.getAPNSToken()
-          : await FirebaseMessaging.instance.getToken();
+      token = await FirebaseMessaging.instance.getToken();
 
       if (token == null) {
         throw Exception("Token was null");

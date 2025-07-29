@@ -28,9 +28,7 @@ class Utilities {
 
   static Widget signOutButton(WidgetRef ref, Client client, int? userId) {
     void signOutLogic() async {
-      final token = Platform.isIOS
-          ? await FirebaseMessaging.instance.getAPNSToken()
-          : await FirebaseMessaging.instance.getToken();
+      final token = await FirebaseMessaging.instance.getToken();
       if (token != null) {
         await client.notifications.deregisterToken(token, userId);
       }

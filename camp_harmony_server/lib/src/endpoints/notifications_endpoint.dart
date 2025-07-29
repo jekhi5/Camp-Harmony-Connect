@@ -63,6 +63,7 @@ class NotificationsEndpoint extends Endpoint {
       if (await _fcm.sendNotification(
               token: t.token, title: title, body: message) ==
           false) {
+        print("Failed token: ${t.token}");
         someFailed = true;
       } else {
         someSentSuccessfully = true;

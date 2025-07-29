@@ -54,9 +54,7 @@ Future<void> main() async {
   String? token;
 
   try {
-    token = Platform.isIOS
-        ? await messaging.getAPNSToken()
-        : await messaging.getToken();
+    token = await messaging.getToken();
   } catch (e) {
     if (kDebugMode) {
       print('Error retrieving token: $e');

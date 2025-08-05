@@ -45,7 +45,11 @@ class _CampHarmonyAppState extends ConsumerState<CampHarmonyApp> {
         final isSignedIn = snapshot.hasData;
         final fbUID = FirebaseAuth.instance.currentUser?.uid;
         final client = ref.watch(clientProvider);
-        if (isSignedIn) _getAdminStatus(client, fbUID);
+        if (isSignedIn) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _getAdminStatus(client, fbUID);
+          });
+        }
 
         final tabs = <String, BottomNavigationBarItem>{
           "checkIn": BottomNavigationBarItem(

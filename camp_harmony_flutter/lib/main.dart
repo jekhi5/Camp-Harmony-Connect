@@ -31,7 +31,6 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    name: "Camp_Harmony_App",
     options: DefaultFirebaseOptions.currentPlatform,
   );
 

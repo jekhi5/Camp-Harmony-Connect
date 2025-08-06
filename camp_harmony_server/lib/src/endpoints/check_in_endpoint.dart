@@ -2,11 +2,11 @@ import 'dart:async';
 import 'package:camp_harmony_server/src/generated/protocol.dart';
 import 'package:serverpod/serverpod.dart';
 
-// Manage checking in and out of being on camp grounds.
+/// Manage checking in and out of being on camp grounds.
 class CheckInEndpoint extends Endpoint {
   /// Check in a user to the camp.
+  /// Checks in a user to camp. The user's firebase [uid] is required to be supplied
   Future<bool> checkIn(Session session, String uid) async {
-    // Implement check-in logic here
     ServerpodUser? user = await ServerpodUser.db
         .findFirstRow(session, where: (u) => u.firebaseUID.equals(uid));
     if (user == null) {
@@ -22,6 +22,7 @@ class CheckInEndpoint extends Endpoint {
   }
 
   /// Check out a user from the camp.
+  /// Checks out a user to camp. The user's firebase [uid] is required to be supplied
   Future<bool> checkOut(Session session, String uid) async {
     ServerpodUser? user = await ServerpodUser.db
         .findFirstRow(session, where: (u) => u.firebaseUID.equals(uid));

@@ -4,11 +4,16 @@ import 'package:firebase_verify_token_dart/firebase_verify_token_dart.dart';
 import 'package:serverpod/serverpod.dart';
 import '../services/fcm_service.dart';
 
-// Send notifications
+/// Manage all notification sending and related events
 class NotificationsEndpoint extends Endpoint {
   final _fcm = FcmService();
   final UserType requiredRolePermissions = UserType.admin;
 
+  /// Send a notification to a set of users. The [session] is implied, but the following variables are required
+  /// The Firebase [authToken] is what validates the user
+  /// The [title] of the notification
+  /// The [message] body of the notification
+  /// A boolean value denoting if the notification should be sent [onlyToCheckedInUsers]
   Future<String> sendNotification(
     Session session,
     String authToken,
@@ -61,9 +66,9 @@ class NotificationsEndpoint extends Endpoint {
 
     for (var t in tokensToSendTo) {
       if (await _fcm.sendNotification(
-              token: t.token, title: title, body: message) ==
+              session: session, token: t.token, title: title, body: message) ==
           false) {
-        print("Failed token: ${t.token}");
+        session.log("Failed token: ${t.token}", level: LogLevel.info);
         someFailed = true;
       } else {
         someSentSuccessfully = true;
@@ -90,6 +95,10 @@ class NotificationsEndpoint extends Endpoint {
     return true;
   }
 
+  /// Register a token for a user. This is used to send notifications to the user
+  /// The [token] is the FCM token for the device
+  /// The [userId] is the ID of the user that the token is associated with
+  /// Returns true if the token was registered successfully, false if it already exists for a different user
   Future<bool> registerToken(Session session, String token, int userId) async {
     // The token object to be inserted
     final FCMToken newTokenObj =
@@ -99,14 +108,20 @@ class NotificationsEndpoint extends Endpoint {
     // The logic is that a device only has a single token, and only one user can
     // be logged in at a time, so there should only ever be one instance of a
     // token at a given time
-    await FCMToken.db.deleteWhere(session,
-        where: (t) => t.token.equals(token) & t.userId.notEquals(userId));
+    try {
+      await FCMToken.db.deleteWhere(session,
+          where: (t) => t.token.equals(token) & t.userId.notEquals(userId));
 
-    var existingToken = await FCMToken.db.findFirstRow(session,
-        where: (t) => t.token.equals(token) & t.userId.equals(userId));
+      var existingToken = await FCMToken.db.findFirstRow(session,
+          where: (t) => t.token.equals(token) & t.userId.equals(userId));
 
-    if (existingToken == null) {
-      await FCMToken.db.insertRow(session, newTokenObj);
+      if (existingToken == null) {
+        await FCMToken.db.insertRow(session, newTokenObj);
+      }
+    } catch (e) {
+      session.log("Error registering FCM token: ${e.toString()}",
+          level: LogLevel.error);
+      return false;
     }
 
     return true;

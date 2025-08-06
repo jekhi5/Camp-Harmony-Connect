@@ -8,16 +8,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final clientProvider = Provider<Client>((ref) {
   final mode = dotenv.get('MODE');
-  String serverUrlFromEnv;
+  String? serverUrlFromEnv;
   if (mode == 'development') {
     serverUrlFromEnv = Platform.isIOS
         ? dotenv.get('IOS_SERVER_URL')
         : dotenv.get('ANDROID_SERVER_URL');
   } else {
-    serverUrlFromEnv = 'https://camp-harmony-app-server.onrender.com/';
+    serverUrlFromEnv = dotenv.maybeGet('PRODUCTION_SERVER_URL');
   }
 
-  final String serverUrl = serverUrlFromEnv.isNotEmpty
+  final String serverUrl = serverUrlFromEnv != null &&
+          serverUrlFromEnv.isNotEmpty
       ? serverUrlFromEnv
       : throw Exception(
           'Environment variable for server is not set. Please set it in your environment.');

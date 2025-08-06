@@ -46,7 +46,7 @@ class _NotificationSenderState extends ConsumerState<NotificationSender> {
     if (_formKey.currentState?.validate() ?? true) {
       final title = _titleController.text.trim();
       final message = _messageController.text.trim();
-      debugPrint('Sending: [$title] -> [$message]');
+      debugPrint('Sending message: "[$title]: [$message]"');
       User? currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
         return;
@@ -168,19 +168,6 @@ class _NotificationSenderState extends ConsumerState<NotificationSender> {
         },
       ),
     );
-
-    // final content = SafeArea(
-    //   child: Padding(
-    //     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-    //     child: Form(
-    //       key: _formKey,
-    //       child: Column(
-    //         crossAxisAlignment: CrossAxisAlignment.stretch,
-    //         children: [],
-    //       ),
-    //     ),
-    //   ),
-    // );
 
     if (_isCupertino) {
       return CupertinoPageScaffold(

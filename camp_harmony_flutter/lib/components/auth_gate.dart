@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:camp_harmony_app/components/onboarding_screen.dart';
 import 'package:camp_harmony_app/serverpod_providers.dart';
 import 'package:camp_harmony_app/utilities.dart';

@@ -2,13 +2,21 @@ import 'dart:async';
 import 'package:camp_harmony_server/src/generated/protocol.dart';
 import 'package:serverpod/serverpod.dart';
 
+/// Manage user-related endpoints, such as fetching and updating user information.
 class ServerpodUserEndpoint extends Endpoint {
+  /// Fetch a user by their Firebase UID
+  /// Returns the user if found, otherwise returns null.
+  /// The [session] is implied, but the [uid] is required.
   Future<ServerpodUser?> getUser(Session session, String uid) async {
     final ServerpodUser? user = await ServerpodUser.db
         .findFirstRow(session, where: (u) => u.firebaseUID.equals(uid));
     return user;
   }
 
+  /// Add a new user to the database.
+  /// Returns the newly created user if successful, otherwise returns null.
+  /// The [session] is implied, but the [user] object is required.
+  /// The user will be created as a regular user with the role of 'user'.
   Future<ServerpodUser?> addUser(Session session, ServerpodUser user) async {
     final existingUser = await getUser(session, user.firebaseUID);
     if (existingUser != null) {
@@ -32,6 +40,9 @@ class ServerpodUserEndpoint extends Endpoint {
     return newUserWithId;
   }
 
+  /// Update an existing user in the database.
+  /// Returns the updated user if successful, otherwise returns null.
+  /// The [session] is implied, but the [user] object with updated fields is required.
   Future<ServerpodUser?> updateUser(Session session, ServerpodUser user) async {
     try {
       return await ServerpodUser.db.updateRow(session, user);
@@ -40,6 +51,9 @@ class ServerpodUserEndpoint extends Endpoint {
     }
   }
 
+  /// Update a user's phone number.
+  /// Returns the updated user if successful, otherwise returns null.
+  /// The [session] is implied, but the [uid] and [phoneNumber] are required.
   Future<ServerpodUser?> updatePhoneNumber(
       Session session, String uid, String phoneNumber) async {
     final user = await getUser(session, uid);
@@ -51,6 +65,9 @@ class ServerpodUserEndpoint extends Endpoint {
     return await updateUser(session, user);
   }
 
+  /// Update a user's profile information.
+  /// Returns the updated user if successful, otherwise returns null.
+  /// The [session] is implied, but the [uid], [firstName], [lastName], and [phoneNumber] are required.
   Future<ServerpodUser?> updateProfile(Session session, String uid,
       String firstName, String lastName, String phoneNumber) async {
     final user = await getUser(session, uid);

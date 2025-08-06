@@ -1,16 +1,13 @@
-# camp_harmony_app
+# Camp Harmony Connect - Flutter
 
-A new Flutter project.
+The Flutter code for the Camp Harmony Connect app
 
-## Getting Started
+# Setup:
 
-This project is a starting point for a Flutter application.
+Note: You may need to install additional software like XCode, Android Studio, or other SDKs to ensure that all of the required simulators and runners work
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Create a `.env` file and create the variables stored in `.env.example`
+- Download the `firebase_options.dart` file from the Google Firebase Console and put it in the `/lib` dir
+- Download and install the [Flutter](https://docs.flutter.dev/get-started/install) and [Gradle](https://gradle.org/install/) SDKs
+- Run `flutter pub get`
+- Run `flutter run`

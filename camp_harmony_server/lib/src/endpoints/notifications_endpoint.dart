@@ -12,7 +12,7 @@ class NotificationsEndpoint extends Endpoint {
   /// Send a notification to a set of users. The [session] is implied, but the following variables are required
   /// The Firebase [authToken] is what validates the user
   /// The [title] of the notification
-  /// The [message] body of the notificaiton
+  /// The [message] body of the notification
   /// A boolean value denoting if the notification should be sent [onlyToCheckedInUsers]
   Future<String> sendNotification(
     Session session,

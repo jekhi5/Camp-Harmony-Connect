@@ -88,6 +88,7 @@ Future<void> main() async {
         theme: ThemeData.light(),
         darkTheme: ThemeData.dark(),
         themeMode: ThemeMode.system,
+        debugShowCheckedModeBanner: false,
       ),
       cupertino: (_, __) => CupertinoAppData(
         theme: const CupertinoThemeData(
@@ -104,6 +105,7 @@ Future<void> main() async {
             ),
           ),
         ),
+        debugShowCheckedModeBanner: false,
       ),
     ),
   ));

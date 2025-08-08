@@ -149,7 +149,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             child: Column(
               children: [
                 const SizedBox(height: 24),
-                Image.asset('images/CampHarmonyLogo.png', height: 100),
+                Image.asset('images/CampLogo.png', height: 100),
                 const SizedBox(height: 16),
                 Card(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,

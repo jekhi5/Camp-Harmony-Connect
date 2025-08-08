@@ -140,7 +140,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
             child: Column(
               children: [
                 const SizedBox(height: 45),
-                Image.asset('images/CampHarmonyLogo.png', height: 275),
+                Image.asset('images/CampLogo.png', height: 275),
                 const SizedBox(height: 75),
 
                 // Phone section
@@ -229,9 +229,7 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
             padding: const EdgeInsets.symmetric(vertical: 24),
             children: [
               // Logo
-              Center(
-                  child:
-                      Image.asset('images/CampHarmonyLogo.png', height: 100)),
+              Center(child: Image.asset('images/CampLogo.png', height: 100)),
               const SizedBox(height: 24),
 
               // Phone section

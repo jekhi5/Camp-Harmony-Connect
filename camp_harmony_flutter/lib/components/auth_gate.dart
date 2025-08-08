@@ -47,8 +47,7 @@ class AuthGate extends ConsumerWidget {
                     padding: EdgeInsets.all(20),
                     child: AspectRatio(
                       aspectRatio: 1,
-                      child: Image(
-                          image: AssetImage('images/CampHarmonyLogo.png')),
+                      child: Image(image: AssetImage('images/CampLogo.png')),
                     ));
               },
               subtitleBuilder: (context, action) {
@@ -78,8 +77,7 @@ class AuthGate extends ConsumerWidget {
                     padding: EdgeInsets.all(20),
                     child: AspectRatio(
                       aspectRatio: 1,
-                      child: Image(
-                          image: AssetImage('images/CampHarmonyLogo.png')),
+                      child: Image(image: AssetImage('images/CampLogo.png')),
                     ));
               },
             );

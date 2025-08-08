@@ -9,7 +9,7 @@ class CampMap extends StatelessWidget {
     return PlatformScaffold(
         appBar: PlatformAppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: const Text("Camp Ramah Ojai"),
+          title: const Text("Camp Map"),
         ),
         body: InteractiveViewer(
           clipBehavior: Clip.none,
@@ -18,7 +18,7 @@ class CampMap extends StatelessWidget {
           minScale: 0.5,
           maxScale: 4.0,
           child: const Image(
-            image: AssetImage('images/CampRamahOjaiMap.png'),
+            image: AssetImage('images/CampMap.png'),
           ),
         ));
   }

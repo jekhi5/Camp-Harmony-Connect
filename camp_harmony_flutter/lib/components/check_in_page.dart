@@ -19,7 +19,6 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   final _formKey = GlobalKey<FormState>();
   final _phoneCtrl = TextEditingController();
 
-  bool _editing = false;
   bool _saving = false;
   String _statusMsg = '';
   String _errorMsg = '';
@@ -28,50 +27,6 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
   void dispose() {
     _phoneCtrl.dispose();
     super.dispose();
-  }
-
-  String? _phoneValidator(String? v) {
-    if (v == null || v.trim().isEmpty) return 'Enter a phone number';
-    final pat = r'^(\+\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$';
-    if (!RegExp(pat).hasMatch(v)) return 'Invalid US phone number';
-    return null;
-  }
-
-  void _startEdit(String? currentPhone) {
-    _phoneCtrl.text = currentPhone ?? '';
-    setState(() => _editing = true);
-  }
-
-  void _cancelEdit(String? originalPhone) {
-    _phoneCtrl.text = originalPhone ?? '';
-    setState(() => _editing = false);
-  }
-
-  Future<void> _savePhone(Client client, String uid) async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _saving = true;
-      _statusMsg = '';
-      _errorMsg = '';
-    });
-
-    try {
-      final updated = await client.serverpodUser
-          .updatePhoneNumber(uid, _phoneCtrl.text.trim());
-      if (updated == null) throw Exception('Server returned null');
-
-      ref.invalidate(userProfileProvider(uid));
-
-      setState(() {
-        _statusMsg = 'Phone number updated!';
-        _editing = false;
-      });
-    } catch (e) {
-      setState(() => _errorMsg = 'Failed to save phone: $e');
-    } finally {
-      setState(() => _saving = false);
-    }
   }
 
   Future<void> _toggleCheckIn(
@@ -126,7 +81,6 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
         (_, next) {
       next.whenData((_) {
         setState(() {
-          _editing = false;
           _saving = false;
           _statusMsg = '';
           _errorMsg = '';
@@ -192,49 +146,13 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                 // Phone section
                 _buildSectionCard(
                   child: ListTile(
-                    leading: const Icon(Icons.phone),
-                    title: _editing
-                        ? Form(
-                            key: _formKey,
-                            autovalidateMode:
-                                AutovalidateMode.onUserInteraction,
-                            child: TextFormField(
-                              controller: _phoneCtrl,
-                              keyboardType: TextInputType.phone,
-                              decoration: const InputDecoration(
-                                labelText: 'Phone Number',
-                              ),
-                              validator: _phoneValidator,
-                            ),
-                          )
-                        : Text(
-                            user.phoneNumber.isNotEmpty
-                                ? 'Phone: ${user.phoneNumber}'
-                                : 'No phone on file',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                    trailing: _editing
-                        ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.check, color: accent),
-                                onPressed: _saving
-                                    ? null
-                                    : () => _savePhone(client, uid),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: _saving
-                                    ? null
-                                    : () => _cancelEdit(user.phoneNumber),
-                              ),
-                            ],
-                          )
-                        : IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _startEdit(user.phoneNumber),
-                          ),
+                    // leading: const Icon(Icons.phone),
+                    title: Text(
+                      user.phoneNumber.isNotEmpty
+                          ? user.phoneNumber
+                          : 'No phone on file',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ),
                 ),
 
@@ -323,55 +241,11 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                     Text('Phone Number', style: TextStyle(color: labelColor)),
                 children: [
                   CupertinoListTile(
-                    title: Icon(CupertinoIcons.phone, color: accent),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          width: 200,
-                          child: _editing
-                              ? CupertinoTextFormFieldRow(
-                                  controller: _phoneCtrl,
-                                  keyboardType: TextInputType.phone,
-                                  style: TextStyle(color: labelColor),
-                                  placeholderStyle:
-                                      TextStyle(color: placeholderColor),
-                                  placeholder: user.phoneNumber,
-                                  validator: _phoneValidator,
-                                )
-                              : Text(
-                                  user.phoneNumber.isNotEmpty
-                                      ? user.phoneNumber
-                                      : 'No phone on file',
-                                  style: TextStyle(color: placeholderColor)),
-                        ),
-                        // const SizedBox(width: 8),
-                        _editing
-                            ? Row(
-                                children: [
-                                  CupertinoButton(
-                                    padding: EdgeInsets.zero,
-                                    child: Icon(CupertinoIcons.check_mark,
-                                        color: accent),
-                                    onPressed: () =>
-                                        _savePhone(client, user.firebaseUID),
-                                  ),
-                                  CupertinoButton(
-                                    padding: EdgeInsets.zero,
-                                    child: const Icon(CupertinoIcons.clear),
-                                    onPressed: () =>
-                                        _cancelEdit(user.phoneNumber),
-                                  ),
-                                ],
-                              )
-                            : CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                child: Text('Edit',
-                                    style: TextStyle(color: accent)),
-                                onPressed: () => _startEdit(user.phoneNumber),
-                              ),
-                      ],
-                    ),
+                    title: Text(
+                        user.phoneNumber.isNotEmpty
+                            ? user.phoneNumber
+                            : 'No phone on file',
+                        style: TextStyle(color: placeholderColor)),
                   ),
                 ],
               ),
@@ -391,12 +265,15 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                       ),
                     ),
                   ),
-                  CupertinoListTile(
-                    title: const Text(''),
-                    trailing: CupertinoButton.filled(
-                      onPressed: () =>
-                          _toggleCheckIn(client, user.firebaseUID, isCheckedIn),
-                      child: Text(isCheckedIn ? 'Check out' : 'Check in'),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: CupertinoListTile(
+                      title: const Text(''),
+                      trailing: CupertinoButton.filled(
+                        onPressed: () => _toggleCheckIn(
+                            client, user.firebaseUID, isCheckedIn),
+                        child: Text(isCheckedIn ? 'Check out' : 'Check in'),
+                      ),
                     ),
                   ),
                 ],

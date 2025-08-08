@@ -146,7 +146,6 @@ class _CheckInPageState extends ConsumerState<CheckInPage> {
                 // Phone section
                 _buildSectionCard(
                   child: ListTile(
-                    // leading: const Icon(Icons.phone),
                     title: Text(
                       user.phoneNumber.isNotEmpty
                           ? user.phoneNumber
